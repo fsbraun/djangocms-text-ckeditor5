@@ -1,0 +1,9 @@
+.cms-ckeditor5-wrapper.ck.ck-editor__editable_inline {
+    padding: 1em;
+    margin: calc(-1em - 1px);
+}
+
+.cms-ckeditor5-wrapper.ck.ck-editor__editable_inline>:first-child {
+  margin-top: initial;
+}
+

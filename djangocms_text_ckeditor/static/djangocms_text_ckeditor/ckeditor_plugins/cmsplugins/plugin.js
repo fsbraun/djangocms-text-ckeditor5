@@ -63,7 +63,7 @@
         init: function (editor) {
             var that = this;
 
-            this.options = CMS.CKEditor.options.settings;
+            this.options = CMS.CKEditor5.options.settings;
             this.editor = editor;
 
 
@@ -263,7 +263,7 @@
             this.editor.addMenuGroup('cmspluginsGroup');
             this.editor.addMenuItem('cmspluginsItem', {
                 label: this.options.lang.edit,
-                icon: CMS.CKEditor.options.settings.static_url + '/ckeditor_plugins/cmsplugins/icons/cmsplugins.png',
+                icon: CMS.CKEditor5.options.settings.static_url + '/ckeditor_plugins/cmsplugins/icons/cmsplugins.png',
                 command: 'cmspluginsEdit',
                 group: 'cmspluginsGroup'
             });

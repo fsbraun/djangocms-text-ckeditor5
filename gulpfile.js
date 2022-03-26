@@ -31,12 +31,12 @@ var PROJECT_PATH = {
 var PROJECT_PATTERNS = {
     js: [
         PROJECT_PATH.js + '/**/*.js',
-        PROJECT_PATH.js + '/../ckeditor_plugins/**/*.js',
+        // PROJECT_PATH.js + '/../ckeditor_plugins/**/*.js',
         PROJECT_PATH.js + '/gulpfile.js',
         '!' + PROJECT_PATH.js + '/pre.js',
         '!' + PROJECT_PATH.js + '/post.js',
-        '!' + PROJECT_PATH.js + '/../ckeditor_plugins/cmsresize/*.js',
-        '!' + PROJECT_PATH.js + '/../ckeditor_plugins/cmsdialog/*.js',
+        // '!' + PROJECT_PATH.js + '/../ckeditor_plugins/cmsresize/*.js',
+        // '!' + PROJECT_PATH.js + '/../ckeditor_plugins/cmsdialog/*.js',
         '!' + PROJECT_PATH.js + '/../ckeditor/**/*.js',
         '!' + PROJECT_PATH.js + '/dist/*.js'
     ]
@@ -49,11 +49,11 @@ var PROJECT_PATTERNS = {
 var JS_BUNDLE = [
     PROJECT_PATH.js + '/pre.js',
     PROJECT_PATH.js + '/cms.ckeditor.js',
-    PROJECT_PATH.js + '/../ckeditor/ckeditor.js',
-    PROJECT_PATH.js + '/../ckeditor_plugins/cmswidget/plugin.js',
-    PROJECT_PATH.js + '/../ckeditor_plugins/cmsdialog/plugin.js',
-    PROJECT_PATH.js + '/../ckeditor_plugins/cmsresize/plugin.js',
-    PROJECT_PATH.js + '/../ckeditor_plugins/cmsplugins/plugin.js',
+//    PROJECT_PATH.js + '/../vendor/ckeditor/ckeditor.js',
+//    PROJECT_PATH.js + '/../ckeditor_plugins/cmswidget/plugin.js',
+//    PROJECT_PATH.js + '/../ckeditor_plugins/cmsdialog/plugin.js',
+//    PROJECT_PATH.js + '/../ckeditor_plugins/cmsresize/plugin.js',
+//    PROJECT_PATH.js + '/../ckeditor_plugins/cmsplugins/plugin.js',
     PROJECT_PATH.js + '/post.js'
 ];
 
@@ -98,7 +98,7 @@ gulp.task('bundle:cleanup:before', function () {
 gulp.task('bundle:js', function () {
     var f = filter([
         '**',
-        '!**/ckeditor/ckeditor.js',
+//        '!**/vendor/ckeditor/ckeditor.js',
         '!**/pre.js',
         '!**/post.js'
     ], { restore: true });

@@ -40,6 +40,7 @@ class AbstractText(CMSPlugin):
     # This property is deprecated. And will be removed in a future release.
     # It should be set on the Plugin, not the model.
     disable_child_plugins = True
+    inline_editing = "CKEditor5"
 
     class Meta:
         abstract = True

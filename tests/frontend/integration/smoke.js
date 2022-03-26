@@ -42,7 +42,7 @@ casper.test.begin('CKEditor loads correctly in the CMS wizard and TextPlugin', f
                     .waitUntilVisible('#cke_id_1-content', function() {
                         // ckeditor textarea has to be done like this
                         this.evaluate(function() {
-                            CMS.CKEditor.editor.setData('Some text');
+                            CMS.CKEditor5.editor.setData('Some text');
                         });
 
                         // submit the form from inside the modal
@@ -83,7 +83,7 @@ casper.test.begin('CKEditor loads correctly in the CMS wizard and TextPlugin', f
             casper.waitUntilVisible('#text_form', function() {
                 // explicitly put text to ckeditor
                 this.evaluate(function(contentData) {
-                    CMS.CKEditor.editor.setData(contentData);
+                    CMS.CKEditor5.editor.setData(contentData);
                 }, 'New text');
             });
         })

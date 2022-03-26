@@ -1,13 +1,13 @@
 (function ($) {
-    window.CKEDITOR_BASEPATH = $('[data-ckeditor-basepath]').attr('data-ckeditor-basepath');
+    window.CKEDITOR5_BASEPATH = $('[data-ckeditor-basepath]').attr('data-ckeditor-basepath');
 
     // CMS.$ will be passed for $
     /**
-     * CMS.CKEditor
+     * CMS.CKEditor5
      *
      * @description: Adds cms specific plugins to CKEditor
      */
-    CMS.CKEditor = {
+    CMS.CKEditor5 = {
 
         options: {
             // ckeditor default settings, will be overwritten by CKEDITOR_SETTINGS
@@ -52,6 +52,7 @@
         },
 
         init: function (container, options, settings) {
+            console.log("CMS.CKEditor5.init", container, options, settings);
             if ($('#' + container).length > 0) {
                 this.container = $('#' + container);
                 this.container.data('ckeditor-initialized', true);
@@ -62,32 +63,46 @@
                 }, this.options, options);
 
                 // add extra plugins that we absolutely must have
-                this.options.extraPlugins = this.options.extraPlugins +=
-                    ',cmsplugins,cmswidget,cmsdialog,cmsresize,widget';
+                //
+                // this.options.extraPlugins = this.options.extraPlugins +=
+                //    ',cmsplugins,cmswidget,cmsdialog,cmsresize,widget';
 
                 document.createElement('cms-plugin');
-                CKEDITOR.dtd['cms-plugin'] = CKEDITOR.dtd.div;
-                CKEDITOR.dtd.$inline['cms-plugin'] = 1;
-                // has to be here, otherwise extra <p> tags appear
-                CKEDITOR.dtd.$nonEditable['cms-plugin'] = 1;
-                CKEDITOR.dtd.$transparent['cms-plugin'] = 1;
-                CKEDITOR.dtd.body['cms-plugin'] = 1;
 
-                // add additional plugins (autoloads plugins.js)
-                CKEDITOR.skin.addIcon('cmsplugins', settings.static_url +
-                    '/ckeditor_plugins/cmsplugins/icons/cmsplugins.png');
+                // CKEDITOR.dtd['cms-plugin'] = CKEDITOR.dtd.div;
+                // CKEDITOR.dtd.$inline['cms-plugin'] = 1;
+                // // has to be here, otherwise extra <p> tags appear
+                // CKEDITOR.dtd.$nonEditable['cms-plugin'] = 1;
+                // CKEDITOR.dtd.$transparent['cms-plugin'] = 1;
+                // CKEDITOR.dtd.body['cms-plugin'] = 1;
+                //
+                // // add additional plugins (autoloads plugins.js)
+                // CKEDITOR.skin.addIcon('cmsplugins', settings.static_url +
+                //    '/ckeditor_plugins/cmsplugins/icons/cmsplugins.png');
 
                 // render ckeditor
-                this.editor = CKEDITOR.replace(container, this.options);
+                console.log('CKEDITOR classical to be created for', container);
+                this.editor = CKEDITOR.ClassicEditor;
+                this.editor.create(document.getElementById(container))
+                    .then(function (editor) {
+                        // editor.on('instanceReady', function () {
+                        //     $.proxy(CMS.CKEditor5, 'setup');
+                        // });
+                        // this.editor = editor;
+                        console.log('CKEDITOR instance ready');
 
-                // add additional styling
-                CKEDITOR.on('instanceReady', $.proxy(CMS.CKEditor, 'setup'));
+                    })
+                    .catch(function(err) {
+                        console.error( err );
+                    });
+
             }
         },
 
         // setup is called after ckeditor has been initialized
         setup: function () {
             // auto maximize modal if alone in a modal
+            console.log("setup called");
             var that = this;
             var win = window.parent || window;
             // 70px is hardcoded to make it more performant. 20px + 20px - paddings, 30px label height
@@ -197,7 +212,7 @@
                 if (selector.match(/__prefix__/)) {
                     dynamics.push(editorConfig);
                 } else {
-                    CMS.CKEditor.init(editorConfig[0], editorConfig[1], editorConfig[2]);
+                    CMS.CKEditor5.init(editorConfig[0], editorConfig[1], editorConfig[2]);
                 }
             });
 
@@ -218,7 +233,7 @@
                         var regex = new RegExp(selector.replace('__prefix__', '\\d+'));
 
                         if (containerId.match(regex)) {
-                            CMS.CKEditor.init(containerId, config[1], config[2]);
+                            CMS.CKEditor5.init(containerId, config[1], config[2]);
                         }
                     });
                 });
@@ -227,6 +242,6 @@
     };
 
     setTimeout(function init() {
-        CMS.CKEditor._initAll();
+        CMS.CKEditor5._initAll();
     }, 0);
 })(CMS.$);

@@ -1,6 +1,21 @@
 @charset "utf-8";
 /* everything has to be !important because of the way css is loaded */
 
+body.popup {
+    position: relative;
+}
+body.popup .field-body .ck-editor {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left:0;
+    right: 0;
+    background: var(--dca-white, var(--body-bg));
+}
+
+.ck-editor textarea {
+    max-height: inherit;
+}
 /* float left with the label */
 .cke_chrome {
     float: left !important;
