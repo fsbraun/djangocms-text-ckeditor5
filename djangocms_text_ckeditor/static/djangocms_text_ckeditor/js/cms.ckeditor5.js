@@ -71,7 +71,7 @@
                     if (container.classList.contains('cms-ckeditor-inline-wrapper')) {
                         // inline editor
                     }
-                    editor_instance.model.document.on( 'change:data', function () {
+                    editor_instance.model.document.on('change:data', function () {
                         CMS.CKEditor5.editors[options.plugin_id].changed = true;
                     });
                     setup.callback(editor_instance, setup);
