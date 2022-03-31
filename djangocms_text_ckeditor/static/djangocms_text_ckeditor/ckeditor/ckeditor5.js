@@ -3,6 +3,7 @@
  * For licensing, see LICENSE.md or https://ckeditor.com/legal/ckeditor-oss-license
  */
 
+
 // The editor creator to use.
 import ClassicEditorBase from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
 import InlineEditorBase from '@ckeditor/ckeditor5-editor-inline/src/inlineeditor';
@@ -34,6 +35,7 @@ import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
 import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import SourceEditing from '@ckeditor/ckeditor5-source-editing/src/sourceediting';
+import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline';
 
 class ClassicEditor extends ClassicEditorBase {}
 class InlineEditor extends InlineEditorBase {}
@@ -53,6 +55,7 @@ const builtinPlugins = [
 	CloudServices,
 	EasyImage,
 	Heading,
+    HorizontalLine,
 	Image,
 	ImageCaption,
 	ImageStyle,
@@ -86,6 +89,8 @@ const defaultConfig = {
 			'link',
 			'bulletedList',
 			'numberedList',
+            '|',
+            'horizontalLine',
 			'|',
 			'outdent',
 			'indent',
@@ -127,6 +132,8 @@ BalloonEditor.defaultConfig = defaultConfig;
 BalloonBlockEditor.defaultConfig = {
 	blockToolbar: [
 		'heading',
+        '|',
+        'horizontalLine',
 		'|',
 		'bulletedList',
 		'numberedList',
