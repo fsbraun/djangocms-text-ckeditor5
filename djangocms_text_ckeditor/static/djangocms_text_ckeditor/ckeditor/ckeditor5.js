@@ -7,18 +7,24 @@
 // The editor creator to use.
 import ClassicEditorBase from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
 import InlineEditorBase from '@ckeditor/ckeditor5-editor-inline/src/inlineeditor';
-import BalloonEditorBase from '@ckeditor/ckeditor5-editor-balloon/src/ballooneditor';
 
 import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
 import UploadAdapter from '@ckeditor/ckeditor5-adapter-ckfinder/src/uploadadapter';
 import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat';
 import Autosave from '@ckeditor/ckeditor5-autosave/src/autosave';
+import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
 import Bold from '@ckeditor/ckeditor5-basic-styles/src/bold';
 import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
+import Underline from '@ckeditor/ckeditor5-basic-styles/src/underline';
+import Strikethrough from '@ckeditor/ckeditor5-basic-styles/src/strikethrough';
+import Code from '@ckeditor/ckeditor5-basic-styles/src/code';
+import Subscript from '@ckeditor/ckeditor5-basic-styles/src/subscript';
+import Superscript from '@ckeditor/ckeditor5-basic-styles/src/superscript';
+import Font from '@ckeditor/ckeditor5-font/src/font';
 import BlockQuote from '@ckeditor/ckeditor5-block-quote/src/blockquote';
-import CKFinder from '@ckeditor/ckeditor5-ckfinder/src/ckfinder';
-import EasyImage from '@ckeditor/ckeditor5-easy-image/src/easyimage';
+import CodeBlock from '@ckeditor/ckeditor5-code-block/src/codeblock';
 import Heading from '@ckeditor/ckeditor5-heading/src/heading';
+import Base64UploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/base64uploadadapter';
 import Image from '@ckeditor/ckeditor5-image/src/image';
 import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption';
 import ImageStyle from '@ckeditor/ckeditor5-image/src/imagestyle';
@@ -33,14 +39,11 @@ import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefrom
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
-import CloudServices from '@ckeditor/ckeditor5-cloud-services/src/cloudservices';
 import SourceEditing from '@ckeditor/ckeditor5-source-editing/src/sourceediting';
 import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline';
 
 class ClassicEditor extends ClassicEditorBase {}
 class InlineEditor extends InlineEditorBase {}
-class BalloonEditor extends BalloonEditorBase {}
-class BalloonBlockEditor extends BalloonEditorBase {}
 
 // Plugins to include in the build.
 const builtinPlugins = [
@@ -48,19 +51,25 @@ const builtinPlugins = [
 	UploadAdapter,
 	Autoformat,
 	Autosave,
+    Alignment,
 	Bold,
 	Italic,
+    Underline,
+    Strikethrough,
+    Code,
+    Subscript,
+    Superscript,
+    Font,
+    CodeBlock,
 	BlockQuote,
-	CKFinder,
-	CloudServices,
-	EasyImage,
 	Heading,
     HorizontalLine,
+    Base64UploadAdapter,
 	Image,
 	ImageCaption,
 	ImageStyle,
 	ImageToolbar,
-	ImageUpload,
+    ImageUpload,
 	Indent,
 	Link,
 	List,
@@ -75,36 +84,32 @@ const builtinPlugins = [
 
 ClassicEditor.builtinPlugins = builtinPlugins;
 InlineEditor.builtinPlugins = builtinPlugins;
-BalloonEditor.builtinPlugins = builtinPlugins;
-BalloonBlockEditor.builtinPlugins = builtinPlugins;
 
 // Editor configuration.
 const defaultConfig = {
 	toolbar: {
 		items: [
-			'heading',
-			'|',
-			'bold',
-			'italic',
-			'link',
-			'bulletedList',
-			'numberedList',
-            '|',
-            'horizontalLine',
-			'|',
-			'outdent',
-			'indent',
-			'|',
-			'uploadImage',
-			'blockQuote',
-			'insertTable',
-			'mediaEmbed',
-			'undo',
-			'redo',
-			'|',
-			'sourceEditing',
+            'undo', 'redo', '|',
+            'heading', '|',
+            'bold', 'italic', 'alignment', '|',
+			'link', '|',
+            'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+            'code', 'codeblock', '|',
+            'fontFamily', 'fontSize', 'fontColor', '|',
+            'imageUpload', 'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote', '|',
+            'sourceEditing'
 		]
 	},
+    heading: {
+        options: [
+            { model: 'paragraph', title: 'Paragraph', class: '' },
+            { model: 'heading1', view: 'h1', title: 'Heading 1', class: '' },
+            { model: 'heading2', view: 'h2', title: 'Heading 2', class: '' },
+            { model: 'heading3', view: 'h3', title: 'Heading 3', class: '' },
+            { model: 'heading4', view: 'h4', title: 'Heading 4', class: '' },
+            { model: 'heading5', view: 'h5', title: 'Heading 5', class: '' }
+        ]
+    },
 	image: {
 		toolbar: [
 			'imageStyle:inline',
@@ -128,57 +133,7 @@ const defaultConfig = {
 
 ClassicEditor.defaultConfig = defaultConfig;
 InlineEditor.defaultConfig = defaultConfig;
-BalloonEditor.defaultConfig = defaultConfig;
-BalloonBlockEditor.defaultConfig = {
-	blockToolbar: [
-		'heading',
-        '|',
-        'horizontalLine',
-		'|',
-		'bulletedList',
-		'numberedList',
-		'|',
-		'outdent',
-		'indent',
-		'|',
-		'uploadImage',
-		'blockQuote',
-		'insertTable',
-		'mediaEmbed',
-		'|',
-		'undo',
-		'redo',
-		'|',
-		'sourceEditing',
-	],
-	toolbar: {
-		items: [
-			'bold',
-			'italic',
-			'link'
-		]
-	},
-	image: {
-		toolbar: [
-			'imageStyle:inline',
-			'imageStyle:block',
-			'imageStyle:side',
-			'|',
-			'toggleImageCaption',
-			'imageTextAlternative'
-		]
-	},
-	table: {
-		contentToolbar: [
-			'tableColumn',
-			'tableRow',
-			'mergeTableCells'
-		]
-	},
-	// This value must be kept in sync with the language defined in webpack.config.js.
-	language: 'en'
-};
 
 export default {
-    ClassicEditor, BalloonEditor, InlineEditor, BalloonBlockEditor
+    ClassicEditor, InlineEditor,
 };

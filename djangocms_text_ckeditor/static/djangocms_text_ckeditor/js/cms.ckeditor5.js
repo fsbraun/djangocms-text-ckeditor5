@@ -9,10 +9,14 @@
         options: {
             // ckeditor default settings, will be overwritten by CKEDITOR_SETTINGS
             language: 'en',
-            skin: 'moono-lisa',
             toolbar_CMS: [
-                ['undo', 'redo'],
-                ['cmsplugins', 'cmswidget', '-', 'ShowBlocks'],
+                'undo', 'redo', '|',
+                'heading', '|',
+                'bold', 'italic', 'underline', '|',
+                'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+                'sourceEditing', '-',
+                'cmsplugins', 'cmswidget', '-', 'ShowBlocks', '|',
+
                 ['Format', 'Styles'],
                 ['TextColor', 'BGColor', '-', 'PasteText', 'PasteFromWord'],
                 ['Scayt'],
@@ -43,7 +47,6 @@
             ],
 
             allowedContent: true,
-            toolbarCanCollapse: false,
             removePlugins: 'resize',
             extraPlugins: ''
         },
@@ -53,7 +56,9 @@
         editors: {},
 
         init: function (container, options, setup) {
-            console.log(container, options, setup);
+            console.log("container", container);
+            console.log("options", options);
+            console.log("setup", setup);
             setup.editor.create(container)
                 .then(function (editor_instance) {
                     console.log("Created editor for", options.plugin_id);
@@ -81,6 +86,10 @@
         },
 
         initInlineEditors: function () {
+            if (CMS._plugins === undefined) {
+                // no plugins -> no inline editors
+                return;
+            }
             CMS._plugins.forEach(function (plugin) {
                 if (plugin[1].plugin_type === 'TextPlugin') {
                     var url = plugin[1].urls.edit_plugin,
@@ -99,7 +108,7 @@
                                 var wrapper = elements
                                     .wrapAll("<div class='cms-ckeditor-inline-wrapper' contenteditable='true'></div>")
                                     .parent(),
-                                    settings = {},
+                                    options = {},
                                     settings_script_tag = responseDOM.find('.ck-settings')[0];
 
                                 elements = elements
@@ -108,20 +117,21 @@
                                 wrapper.addClass('cms-plugin').addClass('cms-plugin-' + id);
                                 wrapper.html(content.val());
                                 for (var attr in settings_script_tag.dataset) {
-                                    settings[attr] = settings_script_tag.dataset[attr];
-                                    if (attr === 'lang' || attr === 'plugins') {
-                                        settings[attr] = JSON.parse(settings[attr]);
+                                    options[attr] = settings_script_tag.dataset[attr];
+                                    if (attr === 'lang' || attr === 'plugins' || attr === "settings") {
+                                        options[attr] = JSON.parse(options[attr]);
                                     }
                                 }
                                 CMS.CKEditor5.init(
                                     wrapper[0],
-                                    settings,
+                                    options,
                                     {
                                         editor: CKEDITOR.InlineEditor,
                                         url: url,
                                         csrfmiddlewaretoken: csrfmiddlewaretoken.val(),
                                         callback: function () {
                                             var styles = $('style[data-cke="true"]');
+
                                             if (styles.length > 0) {
                                                 CMS.CKEditor5.CSS = styles.clone();
                                             }
@@ -149,16 +159,15 @@
             var dynamics = [];
 
             window._cmsCKEditors.forEach(function (editorConfig) {
-                var selector = editorConfig[0].id;
-
-                if (selector.match(/__prefix__/)) {
+                if (editorConfig[0].match(/__prefix__/)) {
                     dynamics.push(editorConfig);
                 } else {
                     CMS.CKEditor5.init(
-                        editorConfig[0],
+                        document.getElementById(editorConfig[0]),
                         editorConfig[1],
                         {
                             editor: CKEDITOR.ClassicEditor,
+                            callback: function () {}
                         }
                     );
                 }
@@ -185,7 +194,7 @@
                                 document.getElementById(containerId),
                                 config[1],
                                 {
-                                    editor: CKEDITOR.ClassicEditor,
+                                    editor: CKEDITOR.ClassicEditor
                                 }
                             );
                         }
@@ -199,16 +208,17 @@
 
             if (instance.changed) {
                 var data = instance.editor.getData();
+
                 console.log('save called', id, instance.setup);
                 $.post(instance.setup.url, {  // send changes
                     csrfmiddlewaretoken: instance.setup.csrfmiddlewaretoken,
-                    body: instance.editor.getData(),
-                    _save: "Save"
+                    body: data,
+                    _save: 'Save'
                 }, function (response) {
                     if (action !== undefined) {
                         // action();
                     }
-                    var scripts = $(response).find("script").addClass("cms-ckeditor5-result");
+                    // var scripts = $(response).find("script").addClass("cms-ckeditor5-result");
                     // $("body").append(scripts);
                 }).fail(function (error) {
                     console.log(error);
@@ -226,16 +236,16 @@
         },
 
         _initAll: function () {
-            var config = document.querySelector('script.ckeditor5-config').dataset;
+//            var config = document.querySelector('script.ckeditor5-config').dataset;
 
-            CMS.CKEditor5.static_url = config.static_url;
+//           CMS.CKEditor5.static_url = config.static_url;
+            console.log("Init inline");
             CMS.CKEditor5.initInlineEditors();
+            console.log("Init admin");
             CMS.CKEditor5.initAdminEditors();
         }
     };
-    setTimeout(function init() {
-        CMS.CKEditor5._initAll();
-    }, 0);
+    setTimeout(CMS.CKEditor5._initAll, 0);
     $(window).on('cms-content-refresh', CMS.CKEditor5._resetInlineEditors);
 
 })(CMS.$);

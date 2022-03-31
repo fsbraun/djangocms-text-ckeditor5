@@ -33,21 +33,23 @@
                         {% endfor %}
                     ]}{% if not forloop.last %},{% endif %}
                 {% endfor %}
-            ]'>
+            ]'
+        data-settings='{{ settings|safe }}'>
     (function () {
         window._cmsCKEditors = window._cmsCKEditors || [];
-        var settings = {};
+        var options = {};
+
         for (var attr in document.currentScript.dataset) {
-            settings[attr] = document.currentScript.dataset[attr];
-            if (attr === "lang" || attr === "plugins") {
-                settings[attr] = JSON.parse(settings[attr])
+            options[attr] = document.currentScript.dataset[attr];
+            if (attr === "lang" || attr === "plugins"  || attr === "settings") {
+                options[attr] = JSON.parse(options[attr])
             }
         }
-        settings.toolbar = "HTMLField";
+        options.settings.toolbar = "HTMLField";
         window._cmsCKEditors.push([
             '{{ ckeditor_selector }}',
-            {{ settings|safe }},
-            settings,
+            options,
         ]);
+        console.log("Editor pushed", options);
     })();
 </script>
