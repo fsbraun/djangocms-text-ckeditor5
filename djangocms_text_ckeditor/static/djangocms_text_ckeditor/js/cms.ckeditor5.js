@@ -56,12 +56,8 @@
         editors: {},
 
         init: function (container, options, setup) {
-            console.log("container", container);
-            console.log("options", options);
-            console.log("setup", setup);
             setup.editor.create(container)
                 .then(function (editor_instance) {
-                    console.log("Created editor for", options.plugin_id);
                     if (options.plugin_id in CMS.CKEditor5.editors) {
                         CMS.CKEditor5.editors[options.plugin_id].editor.destroy(false);
                     }
@@ -94,7 +90,6 @@
                 if (plugin[1].plugin_type === 'TextPlugin') {
                     var url = plugin[1].urls.edit_plugin,
                         id = plugin[1].plugin_id,
-                        container_id = '_ck_inline-' + plugin[1].plugin_id,
                         elements = $('.cms-plugin.cms-plugin-' + id);
 
                     if (elements.length > 0) {
@@ -222,7 +217,7 @@
                     // $("body").append(scripts);
                 }).fail(function (error) {
                     console.log(error);
-                    alert("Error saving data" + error)
+                    alert('Error saving data:' + error.message);
                 });
             }
             CMS.CKEditor5.editors[id].changed = false;
@@ -236,12 +231,7 @@
         },
 
         _initAll: function () {
-//            var config = document.querySelector('script.ckeditor5-config').dataset;
-
-//           CMS.CKEditor5.static_url = config.static_url;
-            console.log("Init inline");
             CMS.CKEditor5.initInlineEditors();
-            console.log("Init admin");
             CMS.CKEditor5.initAdminEditors();
         }
     };

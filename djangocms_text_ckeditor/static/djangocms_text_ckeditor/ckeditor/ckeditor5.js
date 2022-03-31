@@ -46,7 +46,7 @@ class ClassicEditor extends ClassicEditorBase {}
 class InlineEditor extends InlineEditorBase {}
 
 // Plugins to include in the build.
-const builtinPlugins = [
+var builtinPlugins = [
 	Essentials,
 	UploadAdapter,
 	Autoformat,
@@ -86,7 +86,7 @@ ClassicEditor.builtinPlugins = builtinPlugins;
 InlineEditor.builtinPlugins = builtinPlugins;
 
 // Editor configuration.
-const defaultConfig = {
+var defaultConfig = {
 	toolbar: {
 		items: [
             'undo', 'redo', '|',
