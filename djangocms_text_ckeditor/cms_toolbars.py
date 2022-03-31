@@ -22,6 +22,7 @@ class InlineEditingToolbar(CMSToolbar):
     def media(self):
         if self.toolbar.edit_mode_active:
             return forms.Media(
+                css={"all": ("djangocms_text_ckeditor/css/cms.ckeditor.inline.css",)},
                 js=("djangocms_text_ckeditor/js/dist/bundle.ckeditor5.js",
                     "djangocms_text_ckeditor/js/cms.ckeditor5.js")
             )

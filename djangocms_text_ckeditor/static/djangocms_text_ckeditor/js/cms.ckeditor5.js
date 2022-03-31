@@ -11,7 +11,7 @@
             language: 'en',
             skin: 'moono-lisa',
             toolbar_CMS: [
-                ['Undo', 'Redo'],
+                ['undo', 'redo'],
                 ['cmsplugins', 'cmswidget', '-', 'ShowBlocks'],
                 ['Format', 'Styles'],
                 ['TextColor', 'BGColor', '-', 'PasteText', 'PasteFromWord'],
@@ -49,27 +49,31 @@
         },
         static_url: '/static/djangocms-text-ckeditor/',
         ckeditor_basepath: '/static/djangocms-text-ckeditor/ckeditor/',
-        CSS: [],
+        CSS: null,
         editors: {},
 
-        init: function (container, options, editor, callback) {
-            console.log(container, options, editor);
-            editor.create(container)
+        init: function (container, options, setup) {
+            console.log(container, options, setup);
+            setup.editor.create(container)
                 .then(function (editor_instance) {
                     console.log("Created editor for", options.plugin_id);
+                    if (options.plugin_id in CMS.CKEditor5.editors) {
+                        CMS.CKEditor5.editors[options.plugin_id].editor.destroy(false);
+                    }
                     CMS.CKEditor5.editors[options.plugin_id] = {
                         editor: editor_instance,
                         options: options,
                         container: container,
+                        setup: setup,
                         changed: false
                     };
                     if (container.classList.contains('cms-ckeditor-inline-wrapper')) {
                         // inline editor
                     }
-                    editor.model.document.on( 'change:data', function () {
+                    editor_instance.model.document.on( 'change:data', function () {
                         CMS.CKEditor5.editors[options.plugin_id].changed = true;
                     });
-                    callback(editor);
+                    setup.callback(editor_instance, setup);
                 })
                 .catch(function (error) {
                     console.error(error);
@@ -112,17 +116,25 @@
                                 CMS.CKEditor5.init(
                                     wrapper[0],
                                     settings,
-                                    CKEDITOR.InlineEditor,
-                                    function () {
-                                       wrapper.on('dblclick', function (event) {
-                                            event.stopPropagation();
-                                        });
-                                        wrapper.on('pointerover', function (event) {
-                                            event.stopPropagation();
-                                        });
-                                        wrapper.on('blur', function click_outside() {
-                                            CMS.CKEditor5.save_data(id);
-                                        });
+                                    {
+                                        editor: CKEDITOR.InlineEditor,
+                                        url: url,
+                                        csrfmiddlewaretoken: csrfmiddlewaretoken.val(),
+                                        callback: function () {
+                                            var styles = $('style[data-cke="true"]');
+                                            if (styles.length > 0) {
+                                                CMS.CKEditor5.CSS = styles.clone();
+                                            }
+                                            wrapper.on('dblclick', function (event) {
+                                                event.stopPropagation();
+                                            });
+                                            wrapper.on('pointerover', function (event) {
+                                                event.stopPropagation();
+                                            });
+                                            wrapper.on('blur', function click_outside() {
+                                                CMS.CKEditor5.save_data(id);
+                                            });
+                                         }
                                     }
                                 );
                             }
@@ -130,7 +142,6 @@
                     }
                 }
             });
-
         },
 
         initAdminEditors: function () {
@@ -146,7 +157,9 @@
                     CMS.CKEditor5.init(
                         editorConfig[0],
                         editorConfig[1],
-                        CKEDITOR.ClassicEditor
+                        {
+                            editor: CKEDITOR.ClassicEditor,
+                        }
                     );
                 }
             });
@@ -171,24 +184,44 @@
                             CMS.CKEditor5.init(
                                 document.getElementById(containerId),
                                 config[1],
-                                CKEDITOR.ClassicEditor);
+                                {
+                                    editor: CKEDITOR.ClassicEditor,
+                                }
+                            );
                         }
                     });
                 });
             });
         },
 
-        save_data: function (id) {
-            console.log('save called', id, CMS.CKEditor5.editors);
+        save_data: function (id, action) {
+            var instance = CMS.CKEditor5.editors[id];
+
+            if (instance.changed) {
+                var data = instance.editor.getData();
+                console.log('save called', id, instance.setup);
+                $.post(instance.setup.url, {  // send changes
+                    csrfmiddlewaretoken: instance.setup.csrfmiddlewaretoken,
+                    body: instance.editor.getData(),
+                    _save: "Save"
+                }, function (response) {
+                    if (action !== undefined) {
+                        // action();
+                    }
+                    var scripts = $(response).find("script").addClass("cms-ckeditor5-result");
+                    // $("body").append(scripts);
+                }).fail(function (error) {
+                    console.log(error);
+                    alert("Error saving data" + error)
+                });
+            }
             CMS.CKEditor5.editors[id].changed = false;
         },
 
         _resetInlineEditors: function () {
-            CMS.CKEditor5.CSS.forEach(function (stylefile) {
-                if ($('link[href="' + stylefile + '"]').length === 0) {
-                    $('head').append($('<link rel="stylesheet" type="text/css" href="' + stylefile + '">'))
-                }
-            });
+            if (CMS.CKEditor5.CSS !== null && $('style[data-cke="true"]').length === 0) {
+                $('head').append(CMS.CKEditor5.CSS);
+            }
             CMS.CKEditor5._initAll();
         },
 
@@ -203,5 +236,6 @@
     setTimeout(function init() {
         CMS.CKEditor5._initAll();
     }, 0);
+    $(window).on('cms-content-refresh', CMS.CKEditor5._resetInlineEditors);
 
 })(CMS.$);
