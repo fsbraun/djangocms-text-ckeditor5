@@ -96,8 +96,7 @@ var defaultConfig = {
             'bulletedList', 'numberedList', 'outdent', 'indent', '|',
             'code', 'codeblock', '|',
             'fontFamily', 'fontSize', 'fontColor', '|',
-            'imageUpload', 'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote', '|',
-            'sourceEditing'
+            'imageUpload', 'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
 		]
 	},
     heading: {
@@ -132,6 +131,7 @@ var defaultConfig = {
 };
 
 ClassicEditor.defaultConfig = defaultConfig;
+ClassicEditor.defaultConfig.toolbar.items.push('|', 'sourceEditing');
 InlineEditor.defaultConfig = defaultConfig;
 
 export default {
