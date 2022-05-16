@@ -1,0 +1,37 @@
+{
+	"plugins": [
+		{
+			"name": "UserStyle",
+			"className": "UserStyle",
+			"description": "Offers the text marking tools (pens and markers) useful when reviewing content or highlighting it for future reference.",
+			"docs": "features/highlight.html",
+			"path": "src/userstyle.js",
+			"uiComponents": [
+				{
+					"type": "SplitButton",
+					"name": "userstyle",
+					"iconPath": "theme/icons/pen.svg"
+				}
+			],
+			"htmlOutput": [
+				{
+					"elements": "span",
+					"classes": [
+						"text-primary",
+						"marker-pink",
+						"marker-blue",
+						"pen-red",
+						"pen-green"
+					],
+					"_comment": "By default, this plugin has 4 markers and 2 pens preconfigured."
+				},
+				{
+					"elements": "span",
+					"classes": "*",
+					"isAlternative": true,
+					"_comment": "The plugin can be configured to set any classes on the `<mark>` element."
+				}
+			]
+		}
+	]
+}

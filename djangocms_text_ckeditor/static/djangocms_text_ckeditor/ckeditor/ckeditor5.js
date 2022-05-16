@@ -7,6 +7,9 @@
 // The editor creator to use.
 import ClassicEditorBase from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
 import InlineEditorBase from '@ckeditor/ckeditor5-editor-inline/src/inlineeditor';
+import BalloonEditorBase from  '@ckeditor/ckeditor5-editor-balloon/src/ballooneditor';
+import BlockToolbar from '@ckeditor/ckeditor5-ui/src/toolbar/block/blocktoolbar';
+
 
 import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
 import UploadAdapter from '@ckeditor/ckeditor5-adapter-ckfinder/src/uploadadapter';
@@ -21,9 +24,10 @@ import Code from '@ckeditor/ckeditor5-basic-styles/src/code';
 import Subscript from '@ckeditor/ckeditor5-basic-styles/src/subscript';
 import Superscript from '@ckeditor/ckeditor5-basic-styles/src/superscript';
 import Font from '@ckeditor/ckeditor5-font/src/font';
-import BlockQuote from '@ckeditor/ckeditor5-block-quote/src/blockquote';
+import BlockQuote from './ckeditor5-block-quote/src/blockquote';
 import CodeBlock from '@ckeditor/ckeditor5-code-block/src/codeblock';
 import Heading from '@ckeditor/ckeditor5-heading/src/heading';
+import HeadingButtonsUI from '@ckeditor/ckeditor5-heading/src/headingbuttonsui';
 import Base64UploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/base64uploadadapter';
 import Image from '@ckeditor/ckeditor5-image/src/image';
 import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption';
@@ -35,15 +39,18 @@ import Link from '@ckeditor/ckeditor5-link/src/link';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
+import ParagraphButtonUI from '@ckeditor/ckeditor5-paragraph/src/paragraphbuttonui';
 import PasteFromOffice from '@ckeditor/ckeditor5-paste-from-office/src/pastefromoffice';
 import Table from '@ckeditor/ckeditor5-table/src/table';
 import TableToolbar from '@ckeditor/ckeditor5-table/src/tabletoolbar';
 import TextTransformation from '@ckeditor/ckeditor5-typing/src/texttransformation';
 import SourceEditing from '@ckeditor/ckeditor5-source-editing/src/sourceediting';
-import HorizontalLine from '@ckeditor/ckeditor5-horizontal-line/src/horizontalline';
+import HorizontalLine from './ckeditor5-horizontal-line/src/horizontalline';
+import UserStyle from './ckeditor5-user-style/src/userstyle';
 
 class ClassicEditor extends ClassicEditorBase {}
 class InlineEditor extends InlineEditorBase {}
+class BalloonEditor extends BalloonEditorBase {}
 
 // Plugins to include in the build.
 var builtinPlugins = [
@@ -52,6 +59,7 @@ var builtinPlugins = [
 	Autoformat,
 	Autosave,
     Alignment,
+    BlockToolbar,
 	Bold,
 	Italic,
     Underline,
@@ -63,6 +71,7 @@ var builtinPlugins = [
     CodeBlock,
 	BlockQuote,
 	Heading,
+    HeadingButtonsUI,
     HorizontalLine,
     Base64UploadAdapter,
 	Image,
@@ -75,15 +84,18 @@ var builtinPlugins = [
 	List,
 	MediaEmbed,
 	Paragraph,
+    ParagraphButtonUI,
 	PasteFromOffice,
 	SourceEditing,
 	Table,
 	TableToolbar,
-	TextTransformation
+	TextTransformation,
+    UserStyle
 ];
 
 ClassicEditor.builtinPlugins = builtinPlugins;
 InlineEditor.builtinPlugins = builtinPlugins;
+BalloonEditor.builtinPlugins = builtinPlugins;
 
 // Editor configuration.
 var defaultConfig = {
@@ -97,7 +109,8 @@ var defaultConfig = {
             'code', 'codeblock', '|',
             'fontFamily', 'fontSize', 'fontColor', '|',
             'imageUpload', 'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
-		]
+		],
+        shouldNotGroupWhenFull: true
 	},
     heading: {
         options: [
@@ -108,6 +121,11 @@ var defaultConfig = {
             { model: 'heading4', view: 'h4', title: 'Heading 4', class: '' },
             { model: 'heading5', view: 'h5', title: 'Heading 5', class: '' }
         ]
+    },
+    blockquote: {
+        options: {
+            classes: 'blockquote'
+        }
     },
 	image: {
 		toolbar: [
@@ -130,10 +148,35 @@ var defaultConfig = {
 	language: 'en'
 };
 
-ClassicEditor.defaultConfig = defaultConfig;
+ClassicEditor.defaultConfig = Object.assign({}, defaultConfig);
 ClassicEditor.defaultConfig.toolbar.items.push('|', 'sourceEditing');
 InlineEditor.defaultConfig = defaultConfig;
+BalloonEditor.defaultConfig = {
+    heading: defaultConfig.heading,
+    table: defaultConfig.table,
+    language: defaultConfig.language,
+    image: defaultConfig.image,
+    blockquote: defaultConfig.blockquote,
+    toolbar: {
+		items: [
+            'bold', 'italic', 'alignment', '|',
+			'link', '|',
+            'code', '|', 'userstyle',
+            'fontFamily', 'fontSize', 'fontColor', '|',
+		]
+	},
+    blockToolbar: {
+        items: [
+            'paragraph', 'heading2', 'heading3', 'heading4', 'heading5',
+            '|',
+            'bulletedList', 'numberedList', 'outdent', 'indent', '|',
+            'codeblock', '|',
+            'imageUpload', 'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
+        ],
+        shouldNotGroupWhenFull: true
+    }
+};
 
 export default {
-    ClassicEditor, InlineEditor,
+    ClassicEditor, InlineEditor, BalloonEditor,
 };
