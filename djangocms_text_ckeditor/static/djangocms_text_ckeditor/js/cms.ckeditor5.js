@@ -122,6 +122,11 @@
                         wrapper.on('pointerover', function (event) {
                             event.stopPropagation();
                         });
+                        $(window).on('beforeunload', function () {
+                           if (CMS.CKEditor5.editors[editor.id].changed) {
+                               return 'Do you really want to leave this page?';
+                           }
+                        });
                         wrapper.on('blur', function click_outside() {
                             CMS.CKEditor5.save_data(editor.id);
                         });
@@ -149,6 +154,7 @@
                     body: data,
                     _save: 'Save'
                 }, function (response) {
+                    instance.changed = false;
                     CMS.API.Toolbar.hideLoader();
                     if (action !== undefined) {
                         action(response);
@@ -161,7 +167,6 @@
                     CMS.API.Messages.open(error);
                 });
             }
-            CMS.CKEditor5.editors[id].changed = false;
         },
 
         initAdminEditors: function () {
