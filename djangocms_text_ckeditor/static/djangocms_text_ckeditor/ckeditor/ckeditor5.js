@@ -12,7 +12,7 @@ import BlockToolbar from '@ckeditor/ckeditor5-ui/src/toolbar/block/blocktoolbar'
 
 
 import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
-import UploadAdapter from '@ckeditor/ckeditor5-adapter-ckfinder/src/uploadadapter';
+// import UploadAdapter from '@ckeditor/ckeditor5-adapter-ckfinder/src/uploadadapter';
 import Autoformat from '@ckeditor/ckeditor5-autoformat/src/autoformat';
 import Autosave from '@ckeditor/ckeditor5-autosave/src/autosave';
 import Alignment from '@ckeditor/ckeditor5-alignment/src/alignment';
@@ -25,15 +25,15 @@ import Subscript from '@ckeditor/ckeditor5-basic-styles/src/subscript';
 import Superscript from '@ckeditor/ckeditor5-basic-styles/src/superscript';
 import Font from '@ckeditor/ckeditor5-font/src/font';
 import BlockQuote from './ckeditor5-block-quote/src/blockquote';
-import CodeBlock from '@ckeditor/ckeditor5-code-block/src/codeblock';
+import CodeBlock from './ckeditor5-code-block/src/codeblock';
 import Heading from '@ckeditor/ckeditor5-heading/src/heading';
 import HeadingButtonsUI from '@ckeditor/ckeditor5-heading/src/headingbuttonsui';
-import Base64UploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/base64uploadadapter';
-import Image from '@ckeditor/ckeditor5-image/src/image';
-import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption';
-import ImageStyle from '@ckeditor/ckeditor5-image/src/imagestyle';
-import ImageToolbar from '@ckeditor/ckeditor5-image/src/imagetoolbar';
-import ImageUpload from '@ckeditor/ckeditor5-image/src/imageupload';
+// import Base64UploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/base64uploadadapter';
+// import Image from '@ckeditor/ckeditor5-image/src/image';
+// import ImageCaption from '@ckeditor/ckeditor5-image/src/imagecaption';
+// import ImageStyle from '@ckeditor/ckeditor5-image/src/imagestyle';
+// import ImageToolbar from '@ckeditor/ckeditor5-image/src/imagetoolbar';
+// import ImageUpload from '@ckeditor/ckeditor5-image/src/imageupload';
 import Indent from '@ckeditor/ckeditor5-indent/src/indent';
 import Link from '@ckeditor/ckeditor5-link/src/link';
 import List from '@ckeditor/ckeditor5-list/src/list';
@@ -49,13 +49,13 @@ import HorizontalLine from './ckeditor5-horizontal-line/src/horizontalline';
 import UserStyle from './ckeditor5-user-style/src/userstyle';
 
 class ClassicEditor extends ClassicEditorBase {}
-class InlineEditor extends InlineEditorBase {}
+// class InlineEditor extends InlineEditorBase {}
 class BalloonEditor extends BalloonEditorBase {}
 
 // Plugins to include in the build.
 var builtinPlugins = [
 	Essentials,
-	UploadAdapter,
+	// UploadAdapter,
 	Autoformat,
 	Autosave,
     Alignment,
@@ -73,12 +73,12 @@ var builtinPlugins = [
 	Heading,
     HeadingButtonsUI,
     HorizontalLine,
-    Base64UploadAdapter,
+    // Base64UploadAdapter,
 	Image,
-	ImageCaption,
-	ImageStyle,
-	ImageToolbar,
-    ImageUpload,
+	// ImageCaption,
+	// ImageStyle,
+	// ImageToolbar,
+    // ImageUpload,
 	Indent,
 	Link,
 	List,
@@ -94,21 +94,20 @@ var builtinPlugins = [
 ];
 
 ClassicEditor.builtinPlugins = builtinPlugins;
-InlineEditor.builtinPlugins = builtinPlugins;
+// InlineEditor.builtinPlugins = builtinPlugins;
 BalloonEditor.builtinPlugins = builtinPlugins;
 
 // Editor configuration.
 var defaultConfig = {
 	toolbar: {
 		items: [
-            'undo', 'redo', '|',
             'heading', '|',
             'bold', 'italic', 'alignment', '|',
 			'link', '|',
             'bulletedList', 'numberedList', 'outdent', 'indent', '|',
             'code', 'codeblock', '|',
             'fontFamily', 'fontSize', 'fontColor', '|',
-            'imageUpload', 'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
+            'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
 		],
         shouldNotGroupWhenFull: true
 	},
@@ -127,16 +126,6 @@ var defaultConfig = {
             classes: 'blockquote'
         }
     },
-	image: {
-		toolbar: [
-			'imageStyle:inline',
-			'imageStyle:block',
-			'imageStyle:side',
-			'|',
-			'toggleImageCaption',
-			'imageTextAlternative'
-		]
-	},
 	table: {
 		contentToolbar: [
 			'tableColumn',
@@ -150,7 +139,7 @@ var defaultConfig = {
 
 ClassicEditor.defaultConfig = Object.assign({}, defaultConfig);
 ClassicEditor.defaultConfig.toolbar.items.push('|', 'sourceEditing');
-InlineEditor.defaultConfig = defaultConfig;
+// InlineEditor.defaultConfig = defaultConfig;
 BalloonEditor.defaultConfig = {
     heading: defaultConfig.heading,
     table: defaultConfig.table,
@@ -171,12 +160,12 @@ BalloonEditor.defaultConfig = {
             '|',
             'bulletedList', 'numberedList', 'outdent', 'indent', '|',
             'codeblock', '|',
-            'imageUpload', 'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
+            'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
         ],
         shouldNotGroupWhenFull: true
     }
 };
 
 export default {
-    ClassicEditor, InlineEditor, BalloonEditor,
+    ClassicEditor, BalloonEditor, // InlineEditor
 };

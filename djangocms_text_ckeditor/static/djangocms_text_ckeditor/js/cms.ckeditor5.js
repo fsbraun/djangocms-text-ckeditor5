@@ -107,7 +107,7 @@
                     editor: CKEDITOR.BalloonEditor,
                     url: url,
                     callback: function (editor) {
-                        console.log("calllback", editor);
+                        console.log(`callback for ${plugin_id} after ${performance.now() - CMS.CKEditor5.start_time} ms`);
                         var styles = $('style[data-cke="true"]');
 
                         if (styles.length > 0) {
@@ -262,9 +262,11 @@
         },
 
         _initAll: function () {
-            console.log("Start Editor init");
+            console.log('Start Editor init');
+            CMS.CKEditor5.start_time = performance.now();
             CMS.CKEditor5.initInlineEditors();
             CMS.CKEditor5.initAdminEditors();
+            console.log(`Finished Editor init after ${performance.now() - CMS.CKEditor5.start_time} ms`);
         },
 
         _killAll: function() {
