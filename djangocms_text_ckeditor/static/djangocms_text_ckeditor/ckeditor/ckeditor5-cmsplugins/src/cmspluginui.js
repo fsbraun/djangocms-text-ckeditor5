@@ -64,13 +64,14 @@ export default class CMSPluginUI extends Plugin {
                         // The t() function helps localize the editor. All strings enclosed in t() can be
                         // translated and change when the language of the editor changes.
                         label: plugin.name,
-                        icon: editor.config.get("cmsPlugin.static_url") + '/' + plugin.icon,
+                        icon: plugin.icon,
                         tooltip: true,
                         withText: false,
                         commandParam: plugin.value,
                     });
 
                     // Disable the placeholder button when the command is disabled.
+                    const command = editor.commands.get('cms-plugin');
                     buttonView.bind('isEnabled').to(command);
 
                     // Execute the command when the dropdown item is clicked (executed).

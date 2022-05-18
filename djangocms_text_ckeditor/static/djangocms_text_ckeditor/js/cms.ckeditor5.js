@@ -94,15 +94,22 @@
             }
             wrapper.data('ckeditor-initialized', true);
 
-            globalOptionsElement = document.getElementById('cke5-cfg');
+            globalOptionsElement = document.getElementById('cke5-cnf');
             options = globalOptionsElement ? JSON.parse(globalOptionsElement.textContent) : {};
+            const lang = options.lang || {};
+            const language = options.language || [];
+            const static_url = options.static_url || "/static/djangocms_text_ckeditor";
+            console.log("startInlineEditor", options);
             editorType = options.editor ||'BalloonEditor';
+
             options = options[editorType] || options;
 
             text_plugin_settings = document.getElementById('text-plugin-' + plugin_id);
             text_plugin_settings = text_plugin_settings ? JSON.parse(text_plugin_settings.textContent) : {};
             options.cmsPlugin = text_plugin_settings;
-
+            options.cmsPlugin.lang = lang;
+            options.cmsPlugin.language = language;
+            options.cmsPlugin.static_url = static_url;
             CMS.CKEditor5.init(
                 wrapper[0],
                 options,

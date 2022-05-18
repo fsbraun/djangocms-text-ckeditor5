@@ -162,7 +162,7 @@ BalloonEditor.defaultConfig = {
             'paragraph', 'heading2', 'heading3', 'heading4', 'heading5',
             '|',
             'bulletedList', 'numberedList', 'outdent', 'indent', '|',
-             'cms-plugin', '|',
+            'cms-plugin', '|', 'LinkPlugin',
             'codeblock', '|',
             'mediaEmbed', 'insertTable', 'horizontalLine', 'blockQuote',
         ],
