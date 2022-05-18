@@ -1,0 +1,23 @@
+{
+	"plugins": [
+		{
+			"name": "CMSDialog",
+			"className": "CMSDialog",
+			"description": "Allows child plugins within CKEditor",
+			"docs": "features/highlight.html",
+			"path": "src/cmsdialog.js",
+			"uiComponents": [
+				{
+					"type": "SplitButton",
+					"name": "userstyle",
+					"iconPath": "theme/icons/pen.svg"
+				}
+			],
+			"htmlOutput": [
+                {
+                    "elements": "cms-plugin"
+                }
+			]
+		}
+	]
+}
