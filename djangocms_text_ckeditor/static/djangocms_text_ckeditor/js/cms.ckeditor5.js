@@ -77,6 +77,7 @@
                             wrapper.addClass('cms-plugin').addClass('cms-plugin-' + plugin_id);
                         }
                         wrapper.attr('data-plugin_id', plugin_id);
+                        wrapper.attr('data-url', url);
                         CMS.CKEditor5.observer.observe(wrapper[0]);  // let observer load inline editor for visible text plugins
                     }
                 }
@@ -115,6 +116,7 @@
                 options,
                 {
                     editor: CKEDITOR[editorType] || CKEDITOR.BalloonEditor,
+                    url: wrapper[0].dataset.url,
                     callback: function (editor) {
                         console.log(`callback for ${plugin_id} after ${performance.now() - CMS.CKEditor5.start_time} ms`);
                         var styles = $('style[data-cke="true"]');

@@ -241,14 +241,14 @@ class TextPlugin(CMSPluginBase):
             for subplugin_id in plugin_tags_to_id_list(content)
         }
 
-    def get_editor_widget(self, request, plugins, plugin):
+    def get_editor_widget(self, request, plugin):
         """
         Returns the Django form Widget to be used for
         the text area
         """
 
         return TextEditorWidget(
-            **self.get_text_plugin_parameter(request, plugins, plugin)
+            **self.get_text_plugin_parameter(request, plugin)
         )
 
     def get_text_plugin_options(self, request, plugin):
