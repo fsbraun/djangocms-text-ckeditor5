@@ -72,15 +72,19 @@ export default class CMSPluginEditing extends Plugin {
 
         // Helper method for both downcast converters.
         function createCMSPluginView( modelItem, viewWriter ) {
-            const name = 'cms-plugin';
-
             const cmsPluginView = viewWriter.createContainerElement( 'cms-plugin', {
                 class: 'placeholder',
             } );
 
             // Insert the placeholder name (as a text).
-            const innerText = viewWriter.createText( name );
-            viewWriter.insert( viewWriter.createPositionAt( cmsPluginView, 0 ), innerText );
+            const content = 'A plugin with <a href="https://ckeditor.com">some link.';
+            const innerHTML = viewWriter.createRawElement(
+                'span', {
+                    class: 'placeholder',
+                }, function( domElement ) {
+	                domElement.innerHTML = content;
+                } );
+            viewWriter.insert( viewWriter.createPositionAt( cmsPluginView, 0 ), innerHTML );
 
             return cmsPluginView;
         }
