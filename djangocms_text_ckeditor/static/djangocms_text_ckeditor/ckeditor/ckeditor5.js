@@ -48,6 +48,8 @@ import SourceEditing from '@ckeditor/ckeditor5-source-editing/src/sourceediting'
 import HorizontalLine from './ckeditor5-horizontal-line/src/horizontalline';
 import UserStyle from './ckeditor5-user-style/src/userstyle';
 
+import CMSPlugin from './ckeditor5-cmsplugins/src/cmsplugin'
+
 class ClassicEditor extends ClassicEditorBase {}
 // class InlineEditor extends InlineEditorBase {}
 class BalloonEditor extends BalloonEditorBase {}
@@ -90,7 +92,8 @@ var builtinPlugins = [
 	Table,
 	TableToolbar,
 	TextTransformation,
-    UserStyle
+    UserStyle,
+    CMSPlugin
 ];
 
 ClassicEditor.builtinPlugins = builtinPlugins;
@@ -149,7 +152,7 @@ BalloonEditor.defaultConfig = {
     toolbar: {
 		items: [
             'bold', 'italic', 'alignment', '|',
-			'link', '|',
+			'link', '|', 'cms-plugin',
             'code', '|', 'userstyle',
             'fontFamily', 'fontSize', 'fontColor', '|',
 		]
