@@ -47,11 +47,11 @@ class TextEditorWidget(forms.Textarea):
         self.plugin_language = plugin_language
         self.plugin_position = plugin_position
         if configuration and getattr(settings, configuration, False):
-            conf = deepcopy(text_settings.CKEDITOR_SETTINGS)
+            conf = deepcopy(text_settings.CKEDITOR5_SETTINGS)
             conf.update(getattr(settings, configuration))
             self.configuration = conf
         else:
-            self.configuration = text_settings.CKEDITOR_SETTINGS
+            self.configuration = text_settings.CKEDITOR5_SETTINGS
         self.cancel_url = cancel_url
         self.render_plugin_url = render_plugin_url
         self.action_token = action_token
@@ -66,7 +66,6 @@ class TextEditorWidget(forms.Textarea):
             js=(
                 static_with_version('cms/js/dist/bundle.admin.base.min.js'),
                 static('djangocms_text_ckeditor/js/dist/bundle.ckeditor5.js'),
-                static('djangocms_text_ckeditor/js/cms.ckeditor5.js'),
             )
         )
 

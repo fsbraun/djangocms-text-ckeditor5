@@ -11,11 +11,10 @@ from django.utils.translation import gettext_lazy as _
 # See http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.config.html
 # for all settings
 
-CKEDITOR_SETTINGS = getattr(settings, 'CKEDITOR_SETTINGS', {
-    'language': '{{ language }}',
-    'toolbar': 'CMS',
-    'skin': 'moono-lisa',
-    'toolbarCanCollapse': False,
+CKEDITOR5_SETTINGS = getattr(settings, 'CKEDITOR5_SETTINGS', {
+    "BalloonEditor":  {},
+    "ClassicEditor": {},
+    "HTMLField": {},
 })
 
 INSTALLED_APPS = getattr(settings, 'INSTALLED_APPS', [])

@@ -12,7 +12,7 @@
         editors: {},
 
         init: function (container, options, setup) {
-            setup.editor.create(container)
+            setup.editor.create(container, options)
                 .then(function (editor_instance) {
                     if (editor_instance.id in CMS.CKEditor5.editors) {
                         CMS.CKEditor5.editors[editor_instance.id].editor.destroy(false);
@@ -47,10 +47,9 @@
                 entries.forEach(function (entry ){
                     if (entry.isIntersecting) {
                         var plugin_id = entry.target.dataset.plugin_id;
-                        var url = entry.target.dataset.edit_url;
 
                         if (!$(entry).data("ckeditor-initialized")) {
-                            CMS.CKEditor5.startInlineEditor(plugin_id, url);
+                            CMS.CKEditor5.startInlineEditor(plugin_id);
                         }
                     }
                 });
@@ -77,9 +76,7 @@
                             elements.removeClass('cms-plugin').removeClass('cms-plugin-' + plugin_id);
                             wrapper.addClass('cms-plugin').addClass('cms-plugin-' + plugin_id);
                         }
-                        wrapper.attr('data-edit_url', url);
                         wrapper.attr('data-plugin_id', plugin_id);
-                        wrapper.data('placeholder_id', plugin[1].placeholder_id);
                         CMS.CKEditor5.observer.observe(wrapper[0]);  // let observer load inline editor for visible text plugins
                     }
                 }
@@ -90,22 +87,27 @@
             console.log("startInlineEditor", plugin_id);
             var wrapper = $('.cms-plugin.cms-plugin-' + plugin_id)
                 .attr('contenteditable', 'true'),
-                optionsElement, options;
-
-            optionsElement = document.getElementById('ck-cfg-' + plugin_id);
-            options = optionsElement ? JSON.parse(optionsElement.textContent) : {};
+                globalOptionsElement, options, editorType, text_plugin_settings;
 
             if (wrapper.data('ckeditor-initialized')) {
                 return;
             }
             wrapper.data('ckeditor-initialized', true);
 
+            globalOptionsElement = document.getElementById('cke5-cfg');
+            options = globalOptionsElement ? JSON.parse(globalOptionsElement.textContent) : {};
+            editorType = options.editor ||'BalloonEditor';
+            options = options[editorType] || options;
+
+            text_plugin_settings = document.getElementById('text-plugin-' + plugin_id);
+            text_plugin_settings = text_plugin_settings ? JSON.parse(text_plugin_settings.textContent) : {};
+            options.cmsPlugin = text_plugin_settings;
+
             CMS.CKEditor5.init(
                 wrapper[0],
                 options,
                 {
-                    editor: CKEDITOR.BalloonEditor,
-                    url: url,
+                    editor: CKEDITOR[editorType] || CKEDITOR.BalloonEditor,
                     callback: function (editor) {
                         console.log(`callback for ${plugin_id} after ${performance.now() - CMS.CKEditor5.start_time} ms`);
                         var styles = $('style[data-cke="true"]');
@@ -163,8 +165,10 @@
                     // $("body").append(scripts);
                 }).fail(function (error) {
                     CMS.API.Toolbar.hideLoader();
-                    console.error("Save", error);
-                    CMS.API.Messages.open(error);
+                    CMS.API.Messages.open({
+                        message: error.message,
+                        error: true,
+                    });
                 });
             }
         },

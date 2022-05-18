@@ -1,0 +1,1 @@
+{% if ckeditor_config %}{% load sekizai_tags %}{% addtoblock 'js' %}{{ ckeditor_config|json_script:"cke5-cnf" }}{% endaddtoblock %}{% endif %}{% include "cms/plugins/text.html" %}{% if ckeditor_config %}{% addtoblock 'js' %}{{ text_config|json_script:text_config_id }}{% endaddtoblock %}{% endif %}

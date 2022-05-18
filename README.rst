@@ -124,12 +124,12 @@ inserted order of chidren. For example::
 .. _CMS_PLACEHOLDER_CONF: http://docs.django-cms.org/en/latest/how_to/placeholders.html?highlight=cms_placeholder_conf
 
 
-CKEDITOR_SETTINGS
+CKEDITOR5_SETTINGS
 *****************
 
-You can override the setting ``CKEDITOR_SETTINGS`` in your settings.py::
+You can override the setting ``CKEDITOR5_SETTINGS`` in your settings.py::
 
-    CKEDITOR_SETTINGS = {
+    CKEDITOR5_SETTINGS = {
         'language': '{{ language }}',
         'toolbar': 'CMS',
         'skin': 'moono-lisa',
@@ -143,7 +143,7 @@ Customizing plugin editor
 
 To customize the plugin editor, use `toolbar_CMS` attribute, as in::
 
-    CKEDITOR_SETTINGS = {
+    CKEDITOR5_SETTINGS = {
         'language': '{{ language }}',
         'toolbar_CMS': [
             ['Undo', 'Redo'],
@@ -160,7 +160,7 @@ Customizing HTMLField editor
 If you use ``HTMLField`` from ``djangocms_text_ckeditor.fields`` in your own
 models, use `toolbar_HTMLField` attribute::
 
-    CKEDITOR_SETTINGS = {
+    CKEDITOR5_SETTINGS = {
         'language': '{{ language }}',
         'toolbar_HTMLField': [
             ['Undo', 'Redo'],

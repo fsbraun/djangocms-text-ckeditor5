@@ -36,7 +36,7 @@ export default class CMSPluginEditing extends Plugin {
             allowAttributesOf: '$text',
 
             // The placeholder can have many types, like date, name, surname, etc:
-            allowAttributes: [ 'plugin_id' ]
+            allowAttributes: [ 'plugin_id', 'plugin_type' ]
         } );
     }
 
@@ -49,9 +49,12 @@ export default class CMSPluginEditing extends Plugin {
             },
             model: ( viewElement, { writer: modelWriter } ) => {
                 // Extract the "name" from "{name}".
-                const name = viewElement.getChild( 0 ).data;
+                const plugin_type = 'unknown' ; //viewElement.getChild( 0 ).attr("plugin-type");
 
-                return modelWriter.createElement( 'cms-plugin', { name } );
+                return modelWriter.createElement( 'cms-plugin', {
+                    plugin_id: null,
+                    plugin_type: plugin_type
+                } );
             }
         } );
 
@@ -72,8 +75,13 @@ export default class CMSPluginEditing extends Plugin {
 
         // Helper method for both downcast converters.
         function createCMSPluginView( modelItem, viewWriter ) {
+            const plugin_type = modelItem.getAttribute( 'plugin_type' );
+            const plugin_id = modelItem.getAttribute( 'plugin_id' );
+
             const cmsPluginView = viewWriter.createContainerElement( 'cms-plugin', {
                 class: 'placeholder',
+                plugin_type: plugin_type,
+                plugin_id: plugin_id
             } );
 
             // Insert the placeholder name (as a text).

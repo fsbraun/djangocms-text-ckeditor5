@@ -1,4 +1,5 @@
 import json
+import operator
 import re
 from distutils.version import LooseVersion
 
@@ -8,7 +9,10 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.forms.fields import CharField
 from django.http import (
-    Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
+    Http404,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404
@@ -16,7 +20,7 @@ from django.template import RequestContext
 from django.urls import re_path, reverse
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_str
-from django.utils.translation import gettext
+from django.utils.translation import gettext, get_language
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
@@ -24,24 +28,32 @@ import cms
 from cms.models import CMSPlugin
 from cms.plugin_base import CMSPluginBase
 from cms.plugin_pool import plugin_pool
-from cms.utils.placeholder import get_toolbar_plugin_struct
+from cms.utils.placeholder import get_toolbar_plugin_struct, get_placeholder_conf
 from cms.utils.urlutils import admin_reverse
 
 from . import settings
 from .forms import (
-    ActionTokenValidationForm, DeleteOnCancelForm, RenderPluginForm, TextForm,
+    ActionTokenValidationForm,
+    DeleteOnCancelForm,
+    RenderPluginForm,
+    TextForm,
 )
 from .models import Text
 from .utils import (
-    OBJ_ADMIN_WITH_CONTENT_RE_PATTERN, _plugin_tags_to_html,
-    plugin_tags_to_admin_html, plugin_tags_to_id_list,
-    plugin_tags_to_user_html, plugin_to_tag, random_comment_exempt,
+    OBJ_ADMIN_WITH_CONTENT_RE_PATTERN,
+    _plugin_tags_to_html,
+    plugin_tags_to_admin_html,
+    plugin_tags_to_id_list,
+    plugin_tags_to_user_html,
+    plugin_to_tag,
+    random_comment_exempt,
     replace_plugin_tags,
+    get_ckeditor_config,
 )
 from .widgets import TextEditorWidget
 
 
-CMS_34 = LooseVersion(cms.__version__) >= LooseVersion('3.4')
+CMS_34 = LooseVersion(cms.__version__) >= LooseVersion("3.4")
 
 
 def _user_can_change_placeholder(request, placeholder):
@@ -55,7 +67,7 @@ def post_add_plugin(operation, **kwargs):
     from djangocms_history.helpers import get_bound_plugins, get_plugin_data
     from djangocms_history.models import dump_json
 
-    text_plugin = kwargs['plugin']
+    text_plugin = kwargs["plugin"]
     new_plugin_ids = set(text_plugin._get_inline_plugin_ids())
 
     if not new_plugin_ids:
@@ -66,21 +78,21 @@ def post_add_plugin(operation, **kwargs):
     new_plugins = get_bound_plugins(new_plugins)
 
     # Extend the recorded added plugins to include the inline plugins (if any)
-    action = operation.actions.only('post_action_data').get(action=ADD_PLUGIN, order=1)
+    action = operation.actions.only("post_action_data").get(action=ADD_PLUGIN, order=1)
     post_data = json.loads(action.post_action_data)
-    post_data['plugins'].extend(get_plugin_data(plugin) for plugin in new_plugins)
+    post_data["plugins"].extend(get_plugin_data(plugin) for plugin in new_plugins)
     action.post_action_data = dump_json(post_data)
-    action.save(update_fields=['post_action_data'])
+    action.save(update_fields=["post_action_data"])
 
 
 def pre_change_plugin(operation, **kwargs):
     from djangocms_history.actions import ADD_PLUGIN, DELETE_PLUGIN
     from djangocms_history.helpers import get_bound_plugins, get_plugin_data
 
-    old_text_plugin = kwargs['old_plugin']
+    old_text_plugin = kwargs["old_plugin"]
     old_plugin_ids = set(old_text_plugin._get_inline_plugin_ids())
 
-    new_text_plugin = kwargs['new_plugin']
+    new_text_plugin = kwargs["new_plugin"]
     new_plugin_ids = set(new_text_plugin._get_inline_plugin_ids())
 
     added_plugin_ids = new_plugin_ids.difference(old_plugin_ids)
@@ -98,20 +110,16 @@ def pre_change_plugin(operation, **kwargs):
     # have already been set on the database when this pre operation
     # is executed.
     old_tree = (
-        old_text_plugin
-        .cmsplugin_set
-        .filter(pk__in=old_plugin_ids)
-        .order_by('position')
-        .values_list('pk', flat=True)
+        old_text_plugin.cmsplugin_set.filter(pk__in=old_plugin_ids)
+        .order_by("position")
+        .values_list("pk", flat=True)
     )
     old_tree = list(old_tree)
 
     new_tree = (
-        new_text_plugin
-        .cmsplugin_set
-        .filter(pk__in=new_plugin_ids)
-        .order_by('position')
-        .values_list('pk', flat=True)
+        new_text_plugin.cmsplugin_set.filter(pk__in=new_plugin_ids)
+        .order_by("position")
+        .values_list("pk", flat=True)
     )
     new_tree = list(new_tree)
 
@@ -122,22 +130,25 @@ def pre_change_plugin(operation, **kwargs):
         order += 1
 
         pre_action_data = {
-            'order': old_tree,
-            'parent_id': old_text_plugin.pk,
+            "order": old_tree,
+            "parent_id": old_text_plugin.pk,
         }
 
-        post_plugin_data = [get_plugin_data(plugin) for plugin in bound_plugins
-                            if plugin.pk in added_plugin_ids]
+        post_plugin_data = [
+            get_plugin_data(plugin)
+            for plugin in bound_plugins
+            if plugin.pk in added_plugin_ids
+        ]
         post_action_data = {
-            'order': new_tree,
-            'parent_id': old_text_plugin.pk,
-            'plugins': post_plugin_data,
+            "order": new_tree,
+            "parent_id": old_text_plugin.pk,
+            "plugins": post_plugin_data,
         }
 
         operation.create_action(
             action=ADD_PLUGIN,
             language=old_text_plugin.language,
-            placeholder=kwargs['placeholder'],
+            placeholder=kwargs["placeholder"],
             pre_data=pre_action_data,
             post_data=post_action_data,
             order=order,
@@ -145,25 +156,29 @@ def pre_change_plugin(operation, **kwargs):
 
     if deleted_plugin_ids:
         order += 1
-        deleted_plugins = [plugin for plugin in bound_plugins if plugin.pk in deleted_plugin_ids]
+        deleted_plugins = [
+            plugin for plugin in bound_plugins if plugin.pk in deleted_plugin_ids
+        ]
         pre_plugin_data = [get_plugin_data(plugin) for plugin in deleted_plugins]
         pre_action_data = {
-            'order': old_tree,
-            'parent_id': old_text_plugin.pk,
-            'plugins': pre_plugin_data,
+            "order": old_tree,
+            "parent_id": old_text_plugin.pk,
+            "plugins": pre_plugin_data,
         }
 
-        post_plugin_data = [get_plugin_data(plugin, only_meta=True) for plugin in deleted_plugins]
+        post_plugin_data = [
+            get_plugin_data(plugin, only_meta=True) for plugin in deleted_plugins
+        ]
         post_action_data = {
-            'order': new_tree,
-            'parent_id': old_text_plugin.pk,
-            'plugins': post_plugin_data,
+            "order": new_tree,
+            "parent_id": old_text_plugin.pk,
+            "plugins": post_plugin_data,
         }
 
         operation.create_action(
             action=DELETE_PLUGIN,
             language=old_text_plugin.language,
-            placeholder=kwargs['placeholder'],
+            placeholder=kwargs["placeholder"],
             pre_data=pre_action_data,
             post_data=post_action_data,
             order=order,
@@ -175,7 +190,7 @@ class TextPlugin(CMSPluginBase):
     name = settings.TEXT_PLUGIN_NAME
     module = settings.TEXT_PLUGIN_MODULE_NAME
     form = TextForm
-    render_template = "cms/plugins/text.html"
+    render_template = "cms/plugins/inline_text.html"
     change_form_template = "cms/plugins/text_plugin_change_form.html"
     ckeditor_configuration = settings.TEXT_CKEDITOR_CONFIGURATION
     disable_child_plugins = True
@@ -183,8 +198,8 @@ class TextPlugin(CMSPluginBase):
     # These are executed by the djangocms-history app
     # We use them to inject inline plugin data
     operation_handler_callbacks = {
-        'post_add_plugin': post_add_plugin,
-        'pre_change_plugin': pre_change_plugin,
+        "post_add_plugin": post_add_plugin,
+        "pre_change_plugin": pre_change_plugin,
     }
 
     if CMS_34:
@@ -203,17 +218,22 @@ class TextPlugin(CMSPluginBase):
     def get_translation_export_content(field, plugin_data):
         def _render_plugin_with_content(obj, match):
             from djangocms_translations.utils import get_text_field_child_label
+
             field = get_text_field_child_label(obj.plugin_type)
-            content = getattr(obj, field) if field else ''
+            content = getattr(obj, field) if field else ""
             return plugin_to_tag(obj, content)
 
-        content = _plugin_tags_to_html(plugin_data[field], output_func=_render_plugin_with_content)
+        content = _plugin_tags_to_html(
+            plugin_data[field], output_func=_render_plugin_with_content
+        )
         subplugins_within_this_content = plugin_tags_to_id_list(content)
         return content, subplugins_within_this_content
 
     @staticmethod
     def set_translation_import_content(content, plugin):
-        data = [x.groups() for x in re.finditer(OBJ_ADMIN_WITH_CONTENT_RE_PATTERN, content)]
+        data = [
+            x.groups() for x in re.finditer(OBJ_ADMIN_WITH_CONTENT_RE_PATTERN, content)
+        ]
         data = {int(pk): value for pk, value in data}
 
         return {
@@ -226,23 +246,44 @@ class TextPlugin(CMSPluginBase):
         Returns the Django form Widget to be used for
         the text area
         """
-        cancel_url_name = self.get_admin_url_name('delete_on_cancel')
-        cancel_url = reverse('admin:%s' % cancel_url_name)
 
-        render_plugin_url_name = self.get_admin_url_name('render_plugin')
-        render_plugin_url = reverse('admin:%s' % render_plugin_url_name)
+        return TextEditorWidget(
+            **self.get_text_plugin_parameter(request, plugins, plugin)
+        )
+
+    def get_text_plugin_options(self, request, plugin):
+        """
+        Turns plugin parameters that ahve a PK (models) into their model pk to make
+        parameters json serializable
+        """
+        return {
+            key: value.pk if hasattr(value, "pk") else value
+            for key, value in self.get_text_plugin_parameter(request, plugin).items()
+        }
+
+    def get_text_plugin_parameter(self, request, plugin):
+        """
+        Returns the parameter for Django form Widget to be used for
+        the text area
+        """
+        cancel_url_name = self.get_admin_url_name("delete_on_cancel")
+        cancel_url = reverse("admin:%s" % cancel_url_name)
+
+        render_plugin_url_name = self.get_admin_url_name("render_plugin")
+        render_plugin_url = reverse("admin:%s" % render_plugin_url_name)
 
         action_token = self.get_action_token(request, plugin)
 
         # should we delete the text plugin when
         # the user cancels?
         delete_text_on_cancel = (
-            'delete-on-cancel' in request.GET and  # noqa
-            not plugin.get_plugin_instance()[0]
+            "delete-on-cancel" in request.GET
+            and not plugin.get_plugin_instance()[0]  # noqa
         )
 
-        widget = TextEditorWidget(
-            installed_plugins=plugins, pk=plugin.pk,
+        return dict(
+            installed_plugins=self.get_plugins(plugin),
+            pk=plugin.pk,
             placeholder=plugin.placeholder,
             plugin_language=plugin.language,
             plugin_position=plugin.position,
@@ -252,15 +293,44 @@ class TextPlugin(CMSPluginBase):
             action_token=action_token,
             delete_on_cancel=delete_text_on_cancel,
         )
-        return widget
 
-    def get_form_class(self, request, plugins, plugin):
+    def get_plugins(self, obj=None):
+        plugin = getattr(self, "cms_plugin_instance", None) or obj
+        get_plugin = plugin_pool.get_plugin
+        child_plugin_types = self.get_child_classes(
+            slot=plugin.placeholder.slot,
+            page=self.page,
+        )
+        child_plugins = (get_plugin(name) for name in child_plugin_types)
+        template = getattr(self.page, "template", None)
+
+        modules = get_placeholder_conf(
+            "plugin_modules", plugin.placeholder.slot, template, default={}
+        )
+        names = get_placeholder_conf(
+            "plugin_labels", plugin.placeholder.slot, template, default={}
+        )
+        main_list = []
+
+        # plugin.value points to the class name of the plugin
+        # It's added on registration. TIL.
+        for plugin in child_plugins:
+            main_list.append(
+                {
+                    "value": plugin.value,
+                    "name": names.get(plugin.value, plugin.name),
+                    "icon": getattr(plugin, "text_icon", None),
+                    "module": modules.get(plugin.value, plugin.module),
+                }
+            )
+        return sorted(main_list, key=operator.itemgetter("module"))
+
+    def get_form_class(self, request, plugin):
         """
         Returns a subclass of Form to be used by this plugin
         """
         widget = self.get_editor_widget(
             request=request,
-            plugins=plugins,
             plugin=plugin,
         )
 
@@ -268,7 +338,7 @@ class TextPlugin(CMSPluginBase):
 
         if instance:
             context = RequestContext(request)
-            context['request'] = request
+            context["request"] = request
             rendered_text = plugin_tags_to_admin_html(
                 text=instance.body,
                 context=context,
@@ -281,11 +351,12 @@ class TextPlugin(CMSPluginBase):
             body = CharField(widget=widget, required=False)
 
             def __init__(self, *args, **kwargs):
-                initial = kwargs.pop('initial', {})
+                initial = kwargs.pop("initial", {})
 
                 if rendered_text:
-                    initial['body'] = rendered_text
+                    initial["body"] = rendered_text
                 super(TextPluginForm, self).__init__(*args, initial=initial, **kwargs)
+
         return TextPluginForm
 
     def _create_ghost_plugin(self, data):
@@ -296,11 +367,11 @@ class TextPlugin(CMSPluginBase):
         the CMS plugin tree internals to make space for a ghost that is added in the
         start or the middle of a placeholders plugin tree.
         """
-        placeholder = data['placeholder_id']
-        language = data['plugin_language']
-        position = data['position']
-        plugin_type = data['plugin_type']
-        plugin_parent = data.get('plugin_parent')
+        placeholder = data["placeholder_id"]
+        language = data["plugin_language"]
+        position = data["position"]
+        plugin_type = data["plugin_type"]
+        plugin_parent = data.get("plugin_parent")
 
         last_position = placeholder.get_last_plugin_position(language) or 0
         # A shift is only needed if the distance between the new plugin
@@ -331,19 +402,17 @@ class TextPlugin(CMSPluginBase):
         return plugin
 
     @xframe_options_sameorigin
-    def add_view(self, request, form_url='', extra_context=None):
-        if 'plugin' in request.GET:
+    def add_view(self, request, form_url="", extra_context=None):
+        if "plugin" in request.GET:
             # CMS >= 3.4 compatibility
-            self.cms_plugin_instance = self._get_plugin_or_404(request.GET['plugin'])
+            self.cms_plugin_instance = self._get_plugin_or_404(request.GET["plugin"])
 
         if getattr(self, "cms_plugin_instance", None):
             # This can happen if the user did not properly cancel the plugin
             # and so a "ghost" plugin instance is left over.
             # The instance is a record that points to the Text plugin
             # but is not a real text plugin instance.
-            return super(TextPlugin, self).add_view(
-                request, form_url, extra_context
-            )
+            return super(TextPlugin, self).add_view(request, form_url, extra_context)
 
         if not self.has_add_permission(request):
             # this permission check is done by Django on the normal
@@ -351,7 +420,7 @@ class TextPlugin(CMSPluginBase):
             # This is NOT the normal workflow because we create a plugin
             # on GET request to the /add/ endpoint and so we bypass
             # django's add_view, thus bypassing permission check.
-            message = gettext('You do not have permission to add a plugin')
+            message = gettext("You do not have permission to add a plugin")
             return HttpResponseForbidden(force_str(message))
 
         try:
@@ -361,16 +430,16 @@ class TextPlugin(CMSPluginBase):
             # CMS >= 3.4 compatibility
             _data = self._cms_initial_attributes
             data = {
-                'plugin_language': _data['language'],
-                'placeholder_id': _data['placeholder'],
-                'parent': _data['parent'],
-                'position': _data['position'],
-                'plugin_type': _data['plugin_type'],
-                'plugin_parent': _data['parent'],
+                "plugin_language": _data["language"],
+                "placeholder_id": _data["placeholder"],
+                "parent": _data["parent"],
+                "position": _data["position"],
+                "plugin_type": _data["plugin_type"],
+                "plugin_parent": _data["parent"],
             }
 
         except PermissionDenied:
-            message = gettext('You do not have permission to add a plugin')
+            message = gettext("You do not have permission to add a plugin")
             return HttpResponseForbidden(force_str(message))
         except ValidationError as error:
             return HttpResponseBadRequest(error.message)
@@ -381,12 +450,12 @@ class TextPlugin(CMSPluginBase):
         plugin = self._create_ghost_plugin(data)
 
         query = request.GET.copy()
-        query['plugin'] = str(plugin.pk)
+        query["plugin"] = str(plugin.pk)
 
-        success_url = admin_reverse('cms_placeholder_add_plugin')
+        success_url = admin_reverse("cms_placeholder_add_plugin")
         # Because we've created the cmsplugin record
         # we need to delete the plugin when a user cancels.
-        success_url += '?delete-on-cancel&' + query.urlencode()
+        success_url += "?delete-on-cancel&" + query.urlencode()
         return HttpResponseRedirect(success_url)
 
     def get_plugin_urls(self):
@@ -395,8 +464,8 @@ class TextPlugin(CMSPluginBase):
             return re_path(regex, func, name=name)
 
         url_patterns = [
-            pattern(r'^render-plugin/$', self.render_plugin),
-            pattern(r'^delete-on-cancel/$', self.delete_on_cancel),
+            pattern(r"^render-plugin/$", self.render_plugin),
+            pattern(r"^delete-on-cancel/$", self.delete_on_cancel),
         ]
         return url_patterns
 
@@ -438,8 +507,10 @@ class TextPlugin(CMSPluginBase):
         # The following is needed for permission checking
         plugin_class.opts = plugin_class.model._meta
 
-        if not (plugin_class.has_change_permission(request, obj=text_plugin) and  # noqa
-                _user_can_change_placeholder(request, text_plugin.placeholder)):
+        if not (
+            plugin_class.has_change_permission(request, obj=text_plugin)
+            and _user_can_change_placeholder(request, text_plugin.placeholder)  # noqa
+        ):
             raise PermissionDenied
         return HttpResponse(form.render_plugin(request))
 
@@ -473,8 +544,10 @@ class TextPlugin(CMSPluginBase):
         # Check for add permissions because this view is meant
         # only for plugins created through the ckeditor
         # and the ckeditor plugin itself.
-        if not (plugin_class.has_add_permission(request) and  # noqa
-                _user_can_change_placeholder(request, text_plugin.placeholder)):
+        if not (
+            plugin_class.has_add_permission(request)
+            and _user_can_change_placeholder(request, text_plugin.placeholder)  # noqa
+        ):
             raise PermissionDenied
         # Token is validated after checking permissions
         # to avoid non-auth users from triggering validation mechanism.
@@ -494,44 +567,51 @@ class TextPlugin(CMSPluginBase):
 
     def get_form(self, request, obj=None, **kwargs):
         plugin = getattr(self, "cms_plugin_instance", None) or obj
-        get_plugin = plugin_pool.get_plugin
-        child_plugin_types = self.get_child_classes(
-            slot=plugin.placeholder.slot,
-            page=self.page,
-        )
-        child_plugins = (get_plugin(name) for name in child_plugin_types)
-        plugins = get_toolbar_plugin_struct(
-            child_plugins,
-            plugin.placeholder.slot,
-            self.page,
-        )
         form = self.get_form_class(
             request=request,
-            plugins=plugins,
             plugin=plugin,
         )
-        kwargs['form'] = form  # override standard form
+        kwargs["form"] = form  # override standard form
         return super(TextPlugin, self).get_form(request, obj, **kwargs)
 
+    @staticmethod
+    def inline_editing_active(request, instance):
+        return (
+            instance is not None
+            and settings.TEXT_INLINE_EDITING
+            and hasattr(request, "toolbar")
+            and request.toolbar.edit_mode_active
+            and request.session.get("inline_editing", True)
+        )
+
     def render(self, context, instance, placeholder):
-        if hasattr(context["request"], "toolbar") and context["request"].toolbar.edit_mode_active:
-            context.update({
-                'body': plugin_tags_to_admin_html(
-                    instance.body,
-                    context,
-                ),
-                'placeholder': placeholder,
-                'object': instance
-            })
+        if self.inline_editing_active(context["request"], instance):
+            context.update(
+                {
+                    "body": plugin_tags_to_admin_html(
+                        instance.body,
+                        context,
+                    ),
+                    "placeholder": placeholder,
+                    "object": instance,
+                    "ckeditor_config": get_ckeditor_config(),
+                    "text_config": self.get_text_plugin_options(
+                        context["request"], instance
+                    ),
+                    "text_config_id": "text-plugin-" + str(instance.id),
+                }
+            )
         else:
-            context.update({
-                'body': plugin_tags_to_user_html(
-                    instance.body,
-                    context,
-                ),
-                'placeholder': placeholder,
-                'object': instance
-            })
+            context.update(
+                {
+                    "body": plugin_tags_to_user_html(
+                        instance.body,
+                        context,
+                    ),
+                    "placeholder": placeholder,
+                    "object": instance,
+                }
+            )
         return context
 
     def save_model(self, request, obj, form, change):
@@ -563,11 +643,8 @@ class TextPlugin(CMSPluginBase):
 
     def _get_plugin_or_404(self, pk):
         plugin_type = self.__class__.__name__
-        plugins = (
-            CMSPlugin
-            .objects
-            .select_related('placeholder', 'parent')
-            .filter(plugin_type=plugin_type)
+        plugins = CMSPlugin.objects.select_related("placeholder", "parent").filter(
+            plugin_type=plugin_type
         )
 
         field = self.model._meta.pk
@@ -575,7 +652,7 @@ class TextPlugin(CMSPluginBase):
         try:
             object_id = field.to_python(unquote(pk))
         except (ValidationError, ValueError):
-            raise Http404('Invalid plugin id')
+            raise Http404("Invalid plugin id")
         return get_object_or_404(plugins, pk=object_id)
 
 

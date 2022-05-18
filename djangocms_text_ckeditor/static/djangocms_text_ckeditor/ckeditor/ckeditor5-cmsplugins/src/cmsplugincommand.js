@@ -11,7 +11,7 @@ export default class CMSPluginCommand extends Command {
             // Create a <placeholder> elment with the "name" attribute (and all the selection attributes)...
             const placeholder = writer.createElement( 'cms-plugin', {
                 ...Object.fromEntries( selection.getAttributes() ),
-                name: value
+                plugin_type: value
             } );
 
             // ... and insert it into the document.
