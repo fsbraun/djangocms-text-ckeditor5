@@ -79,7 +79,6 @@ export default class CMSPluginEditing extends Plugin {
             const plugin_id = modelItem.getAttribute( 'plugin_id' );
 
             const cmsPluginView = viewWriter.createContainerElement( 'cms-plugin', {
-                class: 'placeholder',
                 plugin_type: plugin_type,
                 plugin_id: plugin_id
             } );
@@ -88,7 +87,7 @@ export default class CMSPluginEditing extends Plugin {
             const content = 'A plugin with <a href="https://ckeditor.com">some link.';
             const innerHTML = viewWriter.createRawElement(
                 'span', {
-                    class: 'placeholder',
+                    class: 'badge bg-warning'
                 }, function( domElement ) {
 	                domElement.innerHTML = content;
                 } );
