@@ -8,7 +8,7 @@ import { Model, createDropdown, addListToDropdown } from 'ckeditor5/src/ui';
 import ButtonView from '@ckeditor/ckeditor5-ui/src/button/buttonview';
 
 import cmsPluginIcon from './../theme/icons/puzzle.svg';
-import Modal from './modal/modalui';
+import { Modal } from './modal/modalui';
 import {addLinkProtocolIfApplicable} from "@ckeditor/ckeditor5-link/src/utils";
 
 export default class CMSPluginUI extends Plugin {

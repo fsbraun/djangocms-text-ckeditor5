@@ -7,6 +7,8 @@
  * @module link/ui/linkformview
  */
 
+/*jshint esversion: 6 */
+
 import {
 	ButtonView,
     IframeView,
@@ -20,7 +22,7 @@ import {
 	submitHandler
 } from 'ckeditor5/src/ui';
 import BalloonPanelView from '@ckeditor/ckeditor5-ui/src/panel/balloon/balloonpanelview';
-import ContextualBalloon from '@ckeditor/ckeditor5-ui/src/panel/balloon/contextualballoon';
+import toUnit from '@ckeditor/ckeditor5-utils/src/dom/tounit';
 
 import { FocusTracker, KeystrokeHandler } from 'ckeditor5/src/utils';
 import { icons } from 'ckeditor5/src/core';
@@ -29,14 +31,16 @@ import { icons } from 'ckeditor5/src/core';
 // eslint-disable-next-line ckeditor5-rules/ckeditor-imports
 import '@ckeditor/ckeditor5-ui/theme/components/responsive-form/responsiveform.css';
 
+const toPx = toUnit( 'px' );
 
-export default class Modal {
+
+export class Modal {
     constructor( locale, editCommand ) {
-        this.modalView = new ModalFormView(locale, editCommand);
+        this.modalView = new ModalView(locale, editCommand);
+        this.editor = editCommand.editor;
         this.editingView = editCommand.editor.editing.view;
-        this.contextualBalloon = editCommand.editor.plugins.get( ContextualBalloon );
+        // this.contextualBalloon = editCommand.editor.plugins.get( ContextualBalloon );
         console.log("editComand", editCommand);
-        // this.modalView.render();
     }
 
 	destroy() {
@@ -47,22 +51,9 @@ export default class Modal {
     open( options ) {
         console.log("Modal open", options);
         console.log("Modal", this.modalView);
-        const defaultPositions = BalloonPanelView.defaultPositions;
 
-        this.modalView.render();
-        this.modalView.iframeView.on( 'loaded', () => {
-	        console.log( 'The iframe has loaded', this.modalView.iframeView.element.contentWindow );
-        } );
-        this.modalView.iframeView.element.src = options.url;
-        this.contextualBalloon.add( {
-            view: this.modalView,
-            position: {
-                target: this.editingView.domConverter.viewToDom(this.editingView.document.getRoot().getChild( 0 ) ),
-                position : [
-                    defaultPositions.northArrowSouth
-                ]
-            }
-        });
+        this.modalView.open (options.url);
+        this.modalView.show();
     }
 }
 
@@ -74,7 +65,7 @@ export default class Modal {
  *
  * @extends module:ui/view~View
  */
-export class ModalFormView extends BalloonPanelView {
+export class ModalView extends BalloonPanelView {
 	/**
 	 * Creates an instance of the {@link module:cmsplugins/modal/modalui~ModalFormView} class.
 	 *
@@ -86,6 +77,39 @@ export class ModalFormView extends BalloonPanelView {
 	 */
 	constructor( locale, editCommand ) {
 		super( locale );
+		const bind = this.bindTemplate;
+
+        let width = parseInt(window.innerWidth * 0.6);
+        let height = parseInt(window.innerHeight * 0.6);
+        if (width < 640 || height < 400) {
+            width = window.innerWidth-2;
+            height = window.innerHeight-60-2;
+        }
+        this.set("top", (window.innerWidth-width) / 2);
+		this.set("left", (window.innerHeight-height) / 2);
+        this.set("width", width);
+		this.set("height", height);
+		this.setTemplate( {
+			tag: 'div',
+			attributes: {
+				class: [
+					'ck',
+					'ck-balloon-panel',
+					bind.if( 'isVisible', 'ck-balloon-panel_visible' ),
+					bind.to( 'class' )
+				],
+
+				style: {
+					top: bind.to( 'top', toPx ),
+					left: bind.to( 'left', toPx ),
+					width: bind.to( 'width', toPx ),
+					height: bind.to( 'height', toPx )
+				}
+			},
+
+			children: this.content
+		} );
+        console.log("template", this.template.attributes.style);
 
         const t = locale.t;
 
@@ -112,8 +136,6 @@ export class ModalFormView extends BalloonPanelView {
 		 * @member {module:ui/labeledfield/labeledfieldview~LabeledFieldView}
 		 */
 
-        const bind = this.bindTemplate;
-
         this.set( {
             isEnabled: false,
         });
@@ -136,6 +158,14 @@ export class ModalFormView extends BalloonPanelView {
 		 */
 		this.cancelButtonView = this._createButton( t( 'Cancel' ), icons.cancel, 'ck-button-cancel', 'cancel' );
 
+        this.content.add( this.cancelButtonView );
+        this.content.add( this.saveButtonView );
+
+        this.render();
+        if (!this.added_to_dom) {
+            document.body.appendChild(this.element);
+            this.added_to_dom = true;
+        }
         return;
 		/**
 		 * A collection of {@link module:ui/button/switchbuttonview~SwitchButtonView},
@@ -207,6 +237,19 @@ export class ModalFormView extends BalloonPanelView {
 		injectCssTransitionDisabler( this );
 	}
 
+    open(url) {
+        this.url = url;
+        this.iframeView.element.src = url;
+        this.iframeView.on( 'loaded', () => {
+            for (let element of this.iframeView.element.contentWindow
+                .document.getElementsByClassName("submit-row")) {
+                element.setAttribute("style", "display: none;");
+            }
+            console.log( 'The iframe has loaded', this.iframeView );
+        } );
+        // this.iframeView.style("display: block;");
+
+    }
 	/**
 	 * Obtains the state of the {@link module:ui/button/switchbuttonview~SwitchButtonView switch buttons} representing
 	 * {@link module:link/linkcommand~LinkCommand#manualDecorators manual link decorators}
