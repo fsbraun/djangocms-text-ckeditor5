@@ -8,7 +8,7 @@ import { Model, createDropdown, addListToDropdown } from 'ckeditor5/src/ui';
 import ButtonView from '@ckeditor/ckeditor5-ui/src/button/buttonview';
 
 import cmsPluginIcon from './../theme/icons/puzzle.svg';
-import IframeView from "ckeditor5/src/ui";
+import Modal from './modal/modalui';
 import {addLinkProtocolIfApplicable} from "@ckeditor/ckeditor5-link/src/utils";
 
 export default class CMSPluginUI extends Plugin {
@@ -78,15 +78,17 @@ export default class CMSPluginUI extends Plugin {
 
                     // Execute the command when the dropdown item is clicked (executed).
                     this.listenTo(buttonView, 'execute', evt => {
-                        editor.execute('cms-plugin', {value: evt.source.commandParam});
-                        editor.editing.view.focus();
+                        this.addPlugin(plugin, editor)
+                        // editor.execute('cms-plugin', {value: evt.source.commandParam});
+                        // editor.editing.view.focus();
                     });
 
                     return buttonView;
                 });
             }
         }
-		this.formView = this._createFormView();
+        console.log("UI", editor.ui.view.locale);
+		this.modal = new Modal(editor.ui.view.locale, editor.commands.get('cms-plugin'));
     }
 
 	/**
@@ -96,59 +98,42 @@ export default class CMSPluginUI extends Plugin {
 		super.destroy();
 
 		// Destroy created UI components as they are not automatically destroyed (see ckeditor5#1341).
-		this.formView.destroy();
+        this.modal.destroy();
 	}
 
-    _createFormView() {
-        const editor = this.editor;
-		const editCommand = editor.commands.get( 'cms-plugin' );
-		// const defaultProtocol = editor.config.get( 'link.defaultProtocol' );
-
-		const formView = new IframeView( editor.locale, editCommand );
-
-		formView.urlInputView.fieldView.bind( 'value' ).to( linkCommand, 'value' );
-
-		// Form elements should be read-only when corresponding commands are disabled.
-		formView.urlInputView.bind( 'isReadOnly' ).to( linkCommand, 'isEnabled', value => !value );
-		formView.saveButtonView.bind( 'isEnabled' ).to( linkCommand );
-
-		// Execute link command after clicking the "Save" button.
-		this.listenTo( formView, 'submit', () => {
-			const { value } = formView.urlInputView.fieldView.element;
-			const parsedUrl = addLinkProtocolIfApplicable( value, defaultProtocol );
-			editor.execute( 'link', parsedUrl, formView.getDecoratorSwitchesState() );
-			this._closeFormView();
-		} );
-
-		// Hide the panel after clicking the "Cancel" button.
-		this.listenTo( formView, 'cancel', () => {
-			this._closeFormView();
-		} );
-
-		// Close the panel on esc key press when the **form has focus**.
-		formView.keystrokes.set( 'Esc', ( data, cancel ) => {
-			this._closeFormView();
-			cancel();
-		} );
-
-		return formView;
-	}
-
-
-
-        const iframe = new IframeView();
-
-        iframe.render();
-        document.body.appendChild( iframe.element );
-
-        iframe.on( 'loaded', () => {
-            console.log( 'The iframe has loaded', iframe.element.contentWindow );
-        } );
-
-        iframe.element.src = 'https://ckeditor.com'
+    handleEdit (event) {
 
     }
 
+    editPlugin () {
+
+    }
+
+    addPlugin (plugin, editor) {
+        const selection = editor.model.document.selection;
+        const config = editor.config.get("cmsPlugin");
+
+        console.log("Selection", selection);
+        const data = {
+            placeholder_id: config.placeholder,
+            plugin_type: plugin.value,
+            plugin_parent: config.pk,
+            plugin_position: config.plugin_position + 1,  // after the current plugin
+            cms_path: window.parent.location.pathname,
+            cms_history: 0,
+            plugin_language: config.plugin_language
+        };
+
+        this.modal.open( {
+            title: `${config.lang.add} ${plugin.name}`,
+            url: config.urls.add_plugin + '?' + CMS.$.param(data),
+            onClose: false
+        });
+    }
+
+    setupDialog() {
+
+    }
 }
 
 function getDropdownItemsDefinitions( editor ) {

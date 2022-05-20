@@ -61,7 +61,7 @@
             console.log("Starting obeservers");
             CMS._plugins.forEach(function (plugin) {
                 if (plugin[1].plugin_type === 'TextPlugin') {
-                    var url = plugin[1].urls.edit_plugin;
+                    var urls = plugin[1].urls;
                     var plugin_id = plugin[1].plugin_id;
                     var elements = $('.cms-plugin.cms-plugin-' + plugin_id),
                         wrapper;
@@ -76,15 +76,15 @@
                             elements.removeClass('cms-plugin').removeClass('cms-plugin-' + plugin_id);
                             wrapper.addClass('cms-plugin').addClass('cms-plugin-' + plugin_id);
                         }
-                        wrapper.attr('data-plugin_id', plugin_id);
-                        wrapper.attr('data-url', url);
+                        wrapper[0].dataset.plugin_id = plugin_id;
+                        wrapper[0].dataset.urls = JSON.stringify(urls);
                         CMS.CKEditor5.observer.observe(wrapper[0]);  // let observer load inline editor for visible text plugins
                     }
                 }
             });
         },
 
-        startInlineEditor: function (plugin_id, url, initialEvent) {
+        startInlineEditor: function (plugin_id, initialEvent) {
             console.log("startInlineEditor", plugin_id);
             var wrapper = $('.cms-plugin.cms-plugin-' + plugin_id)
                 .attr('contenteditable', 'true'),
@@ -111,12 +111,12 @@
             options.cmsPlugin.lang = lang;
             options.cmsPlugin.language = language;
             options.cmsPlugin.static_url = static_url;
+            options.cmsPlugin.urls = JSON.parse(wrapper[0].dataset.urls),
             CMS.CKEditor5.init(
                 wrapper[0],
                 options,
                 {
                     editor: CKEDITOR[editorType] || CKEDITOR.BalloonEditor,
-                    url: wrapper[0].dataset.url,
                     callback: function (editor) {
                         console.log(`callback for ${plugin_id} after ${performance.now() - CMS.CKEditor5.start_time} ms`);
                         var styles = $('style[data-cke="true"]');
@@ -160,7 +160,9 @@
 
                 console.log('save called', id, instance.setup);
                 CMS.API.Toolbar.showLoader();
-                $.post(instance.setup.url, {  // send changes
+                $.post(CMS.API.Helpers.updateUrlWithPath(
+                    instance.editor.config.get('cmsPlugin.urls.edit_plugin')
+                ), {  // send changes
                     csrfmiddlewaretoken: CMS.config.csrf,
                     body: data,
                     _save: 'Save'

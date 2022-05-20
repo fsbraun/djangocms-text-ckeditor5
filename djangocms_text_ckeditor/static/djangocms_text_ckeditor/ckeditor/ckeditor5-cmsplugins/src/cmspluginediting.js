@@ -36,7 +36,7 @@ export default class CMSPluginEditing extends Plugin {
             allowAttributesOf: '$text',
 
             // The placeholder can have many types, like date, name, surname, etc:
-            allowAttributes: [ 'plugin_id', 'plugin_type' ]
+            allowAttributes: [ 'id', 'plugin_type', 'content' ]
         } );
     }
 
@@ -49,11 +49,13 @@ export default class CMSPluginEditing extends Plugin {
             },
             model: ( viewElement, { writer: modelWriter } ) => {
                 // Extract the "name" from "{name}".
-                const plugin_type = 'unknown' ; //viewElement.getChild( 0 ).attr("plugin-type");
-
+                const plugin_type = viewElement.getAttribute("plugin-type") ; //viewElement.getChild( 0 ).attr("plugin-type");
+                var content = viewElement.getChild(0);
+                content = content ? content.data : 'XXX';
                 return modelWriter.createElement( 'cms-plugin', {
-                    plugin_id: null,
-                    plugin_type: plugin_type
+                    id: viewElement.getAttribute("id"),
+                    plugin_type: viewElement.getAttribute("plugin-type"),
+                    content: content
                 } );
             }
         } );
@@ -76,15 +78,15 @@ export default class CMSPluginEditing extends Plugin {
         // Helper method for both downcast converters.
         function createCMSPluginView( modelItem, viewWriter ) {
             const plugin_type = modelItem.getAttribute( 'plugin_type' );
-            const plugin_id = modelItem.getAttribute( 'plugin_id' );
+            const plugin_id = modelItem.getAttribute( 'id' );
+            const content = modelItem.getAttribute( 'content', 'XXX' );
 
             const cmsPluginView = viewWriter.createContainerElement( 'cms-plugin', {
                 plugin_type: plugin_type,
-                plugin_id: plugin_id
+                id: plugin_id,
             } );
 
             // Insert the placeholder name (as a text).
-            const content = 'A plugin with <a href="https://ckeditor.com">some link.';
             const innerHTML = viewWriter.createRawElement(
                 'span', {
                     class: 'badge bg-warning'

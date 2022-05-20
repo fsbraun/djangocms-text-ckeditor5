@@ -246,7 +246,6 @@ class TextPlugin(CMSPluginBase):
         Returns the Django form Widget to be used for
         the text area
         """
-
         return TextEditorWidget(
             **self.get_text_plugin_parameter(request, plugin)
         )

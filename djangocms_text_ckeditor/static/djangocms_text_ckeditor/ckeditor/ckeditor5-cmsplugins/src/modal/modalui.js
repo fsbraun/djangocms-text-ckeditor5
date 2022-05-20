@@ -19,12 +19,53 @@ import {
 	injectCssTransitionDisabler,
 	submitHandler
 } from 'ckeditor5/src/ui';
+import BalloonPanelView from '@ckeditor/ckeditor5-ui/src/panel/balloon/balloonpanelview';
+import ContextualBalloon from '@ckeditor/ckeditor5-ui/src/panel/balloon/contextualballoon';
+
 import { FocusTracker, KeystrokeHandler } from 'ckeditor5/src/utils';
 import { icons } from 'ckeditor5/src/core';
 
 // See: #8833.
 // eslint-disable-next-line ckeditor5-rules/ckeditor-imports
 import '@ckeditor/ckeditor5-ui/theme/components/responsive-form/responsiveform.css';
+
+
+export default class Modal {
+    constructor( locale, editCommand ) {
+        this.modalView = new ModalFormView(locale, editCommand);
+        this.editingView = editCommand.editor.editing.view;
+        this.contextualBalloon = editCommand.editor.plugins.get( ContextualBalloon );
+        console.log("editComand", editCommand);
+        // this.modalView.render();
+    }
+
+	destroy() {
+        this.modalView.destroy();
+		super.destroy();
+	}
+
+    open( options ) {
+        console.log("Modal open", options);
+        console.log("Modal", this.modalView);
+        const defaultPositions = BalloonPanelView.defaultPositions;
+
+        this.modalView.render();
+        this.modalView.iframeView.on( 'loaded', () => {
+	        console.log( 'The iframe has loaded', this.modalView.iframeView.element.contentWindow );
+        } );
+        this.modalView.iframeView.element.src = options.url;
+        this.contextualBalloon.add( {
+            view: this.modalView,
+            position: {
+                target: this.editingView.domConverter.viewToDom(this.editingView.document.getRoot().getChild( 0 ) ),
+                position : [
+                    defaultPositions.northArrowSouth
+                ]
+            }
+        });
+    }
+}
+
 
 /**
  * The link form view controller class.
@@ -33,7 +74,7 @@ import '@ckeditor/ckeditor5-ui/theme/components/responsive-form/responsiveform.c
  *
  * @extends module:ui/view~View
  */
-export default class ModalFormView extends View {
+export class ModalFormView extends BalloonPanelView {
 	/**
 	 * Creates an instance of the {@link module:cmsplugins/modal/modalui~ModalFormView} class.
 	 *
@@ -46,7 +87,7 @@ export default class ModalFormView extends View {
 	constructor( locale, editCommand ) {
 		super( locale );
 
-		const t = locale.t;
+        const t = locale.t;
 
 		/**
 		 * Tracks information about DOM focus in the form.
@@ -54,6 +95,7 @@ export default class ModalFormView extends View {
 		 * @readonly
 		 * @member {module:utils/focustracker~FocusTracker}
 		 */
+
 		this.focusTracker = new FocusTracker();
 
 		/**
@@ -69,17 +111,15 @@ export default class ModalFormView extends View {
 		 *
 		 * @member {module:ui/labeledfield/labeledfieldview~LabeledFieldView}
 		 */
+
+        const bind = this.bindTemplate;
+
+        this.set( {
+            isEnabled: false,
+        });
+
 		this.iframeView = new IframeView();
-
-        this.iframeView.render();
-        document.body.appendChild( iframe.element );
-
-        this.iframeView.on( 'loaded', () => {
-	        console.log( 'The iframe has loaded', this.iframeView.element.contentWindow );
-        } );
-
-        this.iframeView.element.src = 'https://ckeditor.com';
-        return;
+        this.content.add( this.iframeView );
 
 		/**
 		 * The Save button view.
@@ -96,6 +136,7 @@ export default class ModalFormView extends View {
 		 */
 		this.cancelButtonView = this._createButton( t( 'Cancel' ), icons.cancel, 'ck-button-cancel', 'cancel' );
 
+        return;
 		/**
 		 * A collection of {@link module:ui/button/switchbuttonview~SwitchButtonView},
 		 * which corresponds to {@link module:link/linkcommand~LinkCommand#manualDecorators manual decorators}
@@ -184,7 +225,7 @@ export default class ModalFormView extends View {
 	/**
 	 * @inheritDoc
 	 */
-	render() {
+	renderx() {
 		super.render();
 
 		submitHandler( {
@@ -225,21 +266,6 @@ export default class ModalFormView extends View {
 	 */
 	focus() {
 		this._focusCycler.focusFirst();
-	}
-
-	/**
-	 * Creates a labeled input view.
-	 *
-	 * @private
-	 * @returns {module:ui/labeledfield/labeledfieldview~LabeledFieldView} Labeled field view instance.
-	 */
-	_createUrlInput() {
-		const t = this.locale.t;
-		const labeledInput = new LabeledFieldView( this.locale, createLabeledInputText );
-
-		labeledInput.label = t( 'Link URL' );
-
-		return labeledInput;
 	}
 
 	/**
