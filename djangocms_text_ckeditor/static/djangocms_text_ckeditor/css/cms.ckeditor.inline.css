@@ -8,3 +8,36 @@
 .cms-ckeditor-inline-wrapper.ck.ck-editor__editable_inline>:first-child {
   margin-top: initial;
 }
+
+.ck .ck-cms-panel-body iframe.ck {
+    width: 100%;
+    height: 100%;
+}
+
+.ck .ck-cms-panel-body iframe.ck {
+    width: 100%;
+    height: 100%;
+}
+
+.ck .ck-cms-panel-title {
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.ck .ck-cms-panel-body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 60px;
+}
+
+.ck .ck-cms-panel-action-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: right;
+}

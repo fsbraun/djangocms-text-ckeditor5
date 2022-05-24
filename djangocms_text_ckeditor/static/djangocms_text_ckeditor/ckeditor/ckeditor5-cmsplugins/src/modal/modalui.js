@@ -55,6 +55,10 @@ export class Modal {
         this.modalView.open (options.url);
         this.modalView.show();
     }
+
+    close() {
+        this.modalView.close()
+    }
 }
 
 
@@ -77,6 +81,10 @@ export class ModalView extends BalloonPanelView {
 	 */
 	constructor( locale, editCommand ) {
 		super( locale );
+
+        this.title_bar = this.createCollection();
+        this.action_bar = this.createCollection();
+
 		const bind = this.bindTemplate;
 
         let width = parseInt(window.innerWidth * 0.6);
@@ -107,7 +115,23 @@ export class ModalView extends BalloonPanelView {
 				}
 			},
 
-			children: this.content
+			children: [
+                {
+                    tag:    'div',
+                    attributes: {class: ['ck-cms-panel-title']},
+                    children: this.title_bar
+                },
+                {
+                    tag:    'div',
+                    attributes: {class: ['ck-cms-panel-body']},
+                    children: this.content
+                },
+                {
+                    tag:    'div',
+                    attributes: {class: ['ck-cms-panel-action-bar', 'ck', 'ck-responsive-form']},
+                    children: this.action_bar
+                },
+            ]
 		} );
         console.log("template", this.template.attributes.style);
 
@@ -158,8 +182,8 @@ export class ModalView extends BalloonPanelView {
 		 */
 		this.cancelButtonView = this._createButton( t( 'Cancel' ), icons.cancel, 'ck-button-cancel', 'cancel' );
 
-        this.content.add( this.cancelButtonView );
-        this.content.add( this.saveButtonView );
+        this.action_bar.add( this.cancelButtonView );
+        this.action_bar.add( this.saveButtonView );
 
         this.render();
         if (!this.added_to_dom) {
@@ -248,7 +272,13 @@ export class ModalView extends BalloonPanelView {
             console.log( 'The iframe has loaded', this.iframeView );
         } );
         // this.iframeView.style("display: block;");
+        this.cancelButtonView.on('click', () => this.close() );
+    }
 
+    close() {
+        console.log('close');
+        this.cancelButtonView.off('click');
+        this.hide();
     }
 	/**
 	 * Obtains the state of the {@link module:ui/button/switchbuttonview~SwitchButtonView switch buttons} representing
